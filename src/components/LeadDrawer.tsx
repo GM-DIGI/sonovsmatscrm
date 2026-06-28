@@ -29,7 +29,7 @@ import {
   invoiceTypeLabel,
 } from "@/lib/format";
 import { BrandedInvoice } from "./BrandedInvoice";
-import { downloadInvoicePdf, generateAndUploadInvoicePdf } from "@/lib/pdf";
+import { downloadInvoicePdf, downloadStoragePdf, generateAndUploadContractPdf, generateAndUploadInvoicePdf } from "@/lib/pdf";
 import { toast } from "sonner";
 import { Check, X, Send, FileText, MessageCircle, Lock, PartyPopper, ExternalLink, Loader2, Mail } from "lucide-react";
 import confetti from "canvas-confetti";
