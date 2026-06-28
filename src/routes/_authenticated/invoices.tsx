@@ -53,30 +53,30 @@ function InvoicesPage() {
   return (
     <AppShell role={role}>
       <div className="space-y-5 p-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Invoices</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Factures</h1>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Stat title="Total invoiced" value={fmtMoney(total)} />
-          <Stat title="Paid" value={fmtMoney(paid)} tint="success" />
-          <Stat title="Outstanding" value={fmtMoney(outstanding)} tint="warn" />
+          <Stat title="Total facturé" value={fmtMoney(total)} />
+          <Stat title="Payé" value={fmtMoney(paid)} tint="success" />
+          <Stat title="En attente" value={fmtMoney(outstanding)} tint="warn" />
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">All invoices</CardTitle>
+            <CardTitle className="text-base">Toutes les factures</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <tr>
-                    <th className="p-2">Invoice</th>
+                    <th className="p-2">Facture</th>
                     <th className="p-2">Client</th>
                     <th className="p-2">Type</th>
-                    <th className="p-2">Issued</th>
-                    <th className="p-2">Due</th>
-                    <th className="p-2">Status</th>
-                    <th className="p-2 text-right">Amount</th>
+                    <th className="p-2">Émission</th>
+                    <th className="p-2">Échéance</th>
+                    <th className="p-2">Statut</th>
+                    <th className="p-2 text-right">Montant</th>
                     <th className="p-2"></th>
                   </tr>
                 </thead>
@@ -84,7 +84,7 @@ function InvoicesPage() {
                   {rows.length === 0 && (
                     <tr>
                       <td colSpan={8} className="p-6 text-center text-muted-foreground">
-                        No invoices yet — generate one from a lead.
+                        Aucune facture pour le moment — générez-en une depuis un lead.
                       </td>
                     </tr>
                   )}
@@ -92,7 +92,7 @@ function InvoicesPage() {
                     <tr key={r.id} className="border-t border-border">
                       <td className="p-2 font-mono">{r.invoice_number}</td>
                       <td className="p-2">{r.leads?.client_name ?? "—"}</td>
-                      <td className="p-2"><Badge variant="outline">{r.invoice_type}</Badge></td>
+                      <td className="p-2"><Badge variant="outline">{invoiceTypeLabel(r.invoice_type)}</Badge></td>
                       <td className="p-2">{fmtDate(r.issue_date)}</td>
                       <td className="p-2">{fmtDate(r.due_date)}</td>
                       <td className="p-2">
@@ -101,12 +101,12 @@ function InvoicesPage() {
                             r.status === "Paid" && "bg-[color:var(--success)] text-[color:var(--success-foreground)]",
                           )}
                         >
-                          {r.status}
+                          {invoiceStatusLabel(r.status)}
                         </Badge>
                       </td>
                       <td className="p-2 text-right font-medium">{fmtMoney(r.amount)}</td>
                       <td className="p-2 text-right">
-                        <Button variant="ghost" size="sm" onClick={() => setPreview(r)}>View</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setPreview(r)}>Voir</Button>
                         {r.leads && (
                           <Button variant="ghost" size="sm" onClick={() => downloadInvoicePdf(r, r.leads!)}>
                             PDF
@@ -124,7 +124,7 @@ function InvoicesPage() {
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Invoice</DialogTitle>
+            <DialogTitle>Facture</DialogTitle>
           </DialogHeader>
           {preview?.leads && <BrandedInvoice invoice={preview} lead={preview.leads} />}
         </DialogContent>
