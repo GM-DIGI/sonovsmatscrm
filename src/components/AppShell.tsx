@@ -1,5 +1,19 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { LogOut, KanbanSquare, FileText, Users, Home, Bell, ShieldCheck } from "lucide-react";
+import {
+  LogOut,
+  KanbanSquare,
+  FileText,
+  Users,
+  Home,
+  Bell,
+  ShieldCheck,
+  Settings as SettingsIcon,
+  Files,
+  UserSquare2,
+  Wrench,
+  Wallet,
+  GitBranch,
+} from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth";
@@ -18,25 +32,104 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof KanbanSquare;
+  badge?: number;
+};
+type NavGroup = { label: string; icon: typeof KanbanSquare; items: NavItem[] };
+
 export function AppShell({ children, role }: { children: ReactNode; role: AppRole | null }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const initials = (user?.user_metadata?.name as string | undefined)?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "·";
+  const initials =
+    (user?.user_metadata?.name as string | undefined)?.[0]?.toUpperCase() ??
+    user?.email?.[0]?.toUpperCase() ??
+    "·";
+
+  const [leadCount, setLeadCount] = useState<number>(0);
+  const [unread, setUnread] = useState<number>(0);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    const load = async () => {
+      const [{ count: lc }, { count: nc }] = await Promise.all([
+        supabase.from("leads").select("id", { count: "exact", head: true }),
+        supabase
+          .from("notifications")
+          .select("id", { count: "exact", head: true })
+          .eq("read", false),
+      ]);
+      setLeadCount(lc ?? 0);
+      setUnread(nc ?? 0);
+    };
+    load();
+    const ch = supabase
+      .channel("shell-counts")
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, load)
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [loading, user]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/auth" });
   };
 
-  const staffNav = [
-    { to: "/dashboard", label: "Pipeline", icon: KanbanSquare },
-    { to: "/invoices", label: "Factures", icon: FileText },
-  ];
-  const adminExtra = [{ to: "/admin", label: "Équipe & rôles", icon: Users }];
-  const clientNav = [{ to: "/portal", label: "Mon parcours", icon: Home }];
-
-  const nav = role === "client" ? clientNav : role === "admin" ? [...staffNav, ...adminExtra] : staffNav;
+  const groups: NavGroup[] =
+    role === "client"
+      ? [
+          {
+            label: "Espace client",
+            icon: Home,
+            items: [
+              { to: "/portal", label: "Mon parcours", icon: Home },
+              { to: "/documents", label: "Mes documents", icon: Files },
+              { to: "/invoices", label: "Mes factures", icon: Wallet },
+            ],
+          },
+          {
+            label: "Compte",
+            icon: SettingsIcon,
+            items: [
+              { to: "/settings", label: "Paramètres", icon: SettingsIcon },
+            ],
+          },
+        ]
+      : [
+          {
+            label: "Pipeline",
+            icon: GitBranch,
+            items: [
+              { to: "/dashboard", label: "Kanban", icon: KanbanSquare },
+              { to: "/dashboard", label: "Mes leads", icon: UserSquare2, badge: leadCount },
+            ],
+          },
+          {
+            label: "Finance",
+            icon: Wallet,
+            items: [
+              { to: "/invoices", label: "Factures", icon: FileText },
+              { to: "/documents", label: "Documents", icon: Files },
+            ],
+          },
+          {
+            label: "Outils",
+            icon: Wrench,
+            items: [
+              { to: "/settings", label: "Notifications", icon: Bell, badge: unread },
+              { to: "/settings", label: "Paramètres", icon: SettingsIcon },
+              ...(role === "admin"
+                ? [{ to: "/admin", label: "Équipe & rôles", icon: Users }]
+                : []),
+            ],
+          },
+        ];
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -50,33 +143,62 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
             <div className="text-[10px] uppercase tracking-wider opacity-60">CRM Immobilier</div>
           </div>
         </div>
-        <div className="px-3 py-2">
+        <div className="px-5 pb-3">
           {role && (
-            <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] uppercase tracking-wider text-[color:var(--sidebar-foreground)]">
+            <Badge
+              variant="outline"
+              className="border-white/10 bg-white/5 text-[10px] uppercase tracking-wider text-[color:var(--sidebar-foreground)]"
+            >
               {roleLabel(role)}
             </Badge>
           )}
         </div>
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {nav.map((item) => {
-            const active = pathname === item.to || pathname.startsWith(item.to + "/");
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
-                  active
-                    ? "bg-[color:var(--sidebar-accent)] text-[color:var(--sidebar-accent-foreground)]"
-                    : "text-[color:var(--sidebar-foreground)]/80 hover:bg-white/5 hover:text-[color:var(--sidebar-foreground)]",
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <ScrollArea className="flex-1">
+          <nav className="space-y-5 px-3 py-3">
+            {groups.map((g) => (
+              <div key={g.label}>
+                <div className="flex items-center gap-2 px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider opacity-50">
+                  <g.icon className="h-3 w-3" />
+                  {g.label}
+                </div>
+                <div className="space-y-0.5">
+                  {g.items.map((item, i) => {
+                    const active =
+                      pathname === item.to ||
+                      (item.to !== "/" && pathname.startsWith(item.to + "/"));
+                    return (
+                      <Link
+                        key={`${g.label}-${item.label}-${i}`}
+                        to={item.to}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
+                          active
+                            ? "bg-[color:var(--sidebar-accent)] text-[color:var(--sidebar-accent-foreground)]"
+                            : "text-[color:var(--sidebar-foreground)]/80 hover:bg-white/5 hover:text-[color:var(--sidebar-foreground)]",
+                        )}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        <span className="flex-1 truncate">{item.label}</span>
+                        {typeof item.badge === "number" && item.badge > 0 && (
+                          <span
+                            className={cn(
+                              "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[10px] font-semibold",
+                              active
+                                ? "bg-white/20 text-white"
+                                : "bg-[color:var(--success)] text-[color:var(--success-foreground)]",
+                            )}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+        </ScrollArea>
         <div className="border-t border-white/10 p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
