@@ -604,6 +604,66 @@ function FinancesTab({
         </div>
       )}
 
+      {((lead as any).contract_path || (lead as any).signed_contract_path) && (
+        <div className="rounded-lg border border-border bg-card p-4">
+          <h4 className="text-sm font-semibold">Contrat</h4>
+          <div className="mt-3 space-y-2 text-sm">
+            {(lead as any).contract_path && (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span>Contrat envoyé au client</span>
+                  {(lead as any).contract_sent_at && (
+                    <span className="text-xs text-muted-foreground">
+                      · {fmtDate((lead as any).contract_sent_at)}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    downloadStoragePdf("lead-documents", (lead as any).contract_path, `contrat-${lead.client_name}.pdf`)
+                  }
+                >
+                  Télécharger
+                </Button>
+              </div>
+            )}
+            {(lead as any).signed_contract_path ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-[color:var(--success)]/10 p-2">
+                <div className="flex items-center gap-2 text-[color:var(--success)]">
+                  <Check className="h-4 w-4" />
+                  <span className="font-medium">Contrat signé reçu</span>
+                  {(lead as any).contract_signed_at && (
+                    <span className="text-xs opacity-80">
+                      · {fmtDate((lead as any).contract_signed_at)}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    downloadStoragePdf(
+                      "lead-documents",
+                      (lead as any).signed_contract_path,
+                      `contrat-signe-${lead.client_name}.pdf`,
+                    )
+                  }
+                >
+                  Télécharger
+                </Button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">En attente du contrat signé du client.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+
+
       <div>
         <h4 className="mb-3 text-sm font-semibold">Factures</h4>
         {invoices.length === 0 ? (
