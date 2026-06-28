@@ -3,11 +3,15 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
-import { listAllUsers, grantRole, revokeRole } from "@/lib/admin.functions";
+import { listAllUsers, grantRole, revokeRole, createStaffUser } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -80,12 +84,15 @@ function AdminPage() {
   return (
     <AppShell role={role}>
       <div className="mx-auto max-w-5xl space-y-5 p-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Équipe & rôles</h1>
-          <p className="text-sm text-muted-foreground">
-            Attribuez à chaque utilisateur le rôle qui correspond à sa fonction. Les agents ne
-            voient que les leads qui leur sont assignés ; les administrateurs voient tout.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Équipe & rôles</h1>
+            <p className="text-sm text-muted-foreground">
+              Attribuez à chaque utilisateur le rôle qui correspond à sa fonction. Les agents ne
+              voient que les leads qui leur sont assignés ; les administrateurs voient tout.
+            </p>
+          </div>
+          <CreateUserDialog onCreated={reload} />
         </div>
         <Card>
           <CardHeader>
