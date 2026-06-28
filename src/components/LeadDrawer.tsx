@@ -234,7 +234,8 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
         />
       </div>
       {canEdit && (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <InviteClientButton lead={lead} />
           <Button onClick={save} className="bg-gradient-brand">Enregistrer</Button>
         </div>
       )}
