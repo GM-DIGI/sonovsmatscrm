@@ -240,7 +240,7 @@ function DocSlot({
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Uploaded — agent will review shortly");
+    toast.success("Document envoyé — votre agent va l'examiner");
     onChange();
   };
 
@@ -267,22 +267,22 @@ function DocSlot({
             {approved ? <Check className="h-4 w-4" /> : rejected ? <AlertCircle className="h-4 w-4" /> : "?"}
           </div>
           <div>
-            <div className="font-medium">{type}</div>
+            <div className="font-medium">{docLabel(type)}</div>
             <div className="text-xs text-muted-foreground">
               {approved
-                ? "Approved"
+                ? "Approuvé"
                 : rejected
-                ? `Rejected — ${latest?.rejection_reason ?? "please re-upload"}`
+                ? `Rejeté — ${latest?.rejection_reason ?? "merci de redéposer"}`
                 : latest
-                ? "Awaiting review"
-                : "Not uploaded yet"}
+                ? "En attente de validation"
+                : "Non envoyé"}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {latest && (
             <Button size="sm" variant="ghost" onClick={() => view(latest.file_path)}>
-              View
+              Voir
             </Button>
           )}
           {!locked && !approved && (
@@ -295,7 +295,7 @@ function DocSlot({
                 onChange={(e) => onFile(e.target.files?.[0])}
               />
               <Button size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>
-                <Upload className="mr-1 h-3.5 w-3.5" /> {latest ? "Re-upload" : "Upload"}
+                <Upload className="mr-1 h-3.5 w-3.5" /> {latest ? "Redéposer" : "Téléverser"}
               </Button>
             </>
           )}
