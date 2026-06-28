@@ -102,6 +102,7 @@ export const createStaffUser = createServerFn({ method: "POST" })
         password: z.string().min(8).max(72).optional(),
         role: z.enum(["admin", "agent"]),
         sendInvite: z.boolean().optional(),
+        redirectTo: z.string().url().optional(),
       })
       .parse(input),
   )
@@ -119,7 +120,7 @@ export const createStaffUser = createServerFn({ method: "POST" })
     if (data.sendInvite) {
       const { data: inv, error: invErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         data.email,
-        { data: { name: data.name } },
+        { data: { name: data.name }, redirectTo: data.redirectTo },
       );
       if (invErr || !inv.user) throw new Error(invErr?.message ?? "Envoi de l'invitation impossible");
       userId = inv.user.id;
@@ -155,7 +156,7 @@ export const createStaffUser = createServerFn({ method: "POST" })
  */
 export const inviteClientForLead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ leadId: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ leadId: z.string().uuid(), redirectTo: z.string().url().optional() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -176,7 +177,7 @@ export const inviteClientForLead = createServerFn({ method: "POST" })
 
     const { data: inv, error: invErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
       lead.email,
-      { data: { name: lead.client_name } },
+      { data: { name: lead.client_name }, redirectTo: data.redirectTo },
     );
     if (invErr || !inv.user) throw new Error(invErr?.message ?? "Envoi de l'invitation impossible");
 

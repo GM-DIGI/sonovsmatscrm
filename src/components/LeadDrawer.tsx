@@ -692,7 +692,7 @@ function InviteClientButton({ lead }: { lead: Lead }) {
   const onClick = async () => {
     setBusy(true);
     try {
-      await invite({ data: { leadId: lead.id } });
+      await invite({ data: { leadId: lead.id, redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined } });
       toast.success(`Invitation envoyée à ${lead.email}`);
       setSent(true);
     } catch (e) {
