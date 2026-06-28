@@ -95,7 +95,7 @@ function DashboardPage() {
     await supabase.from("lead_activities").insert({
       lead_id: lead.id,
       kind: "status",
-      message: `Status changed to “${status}”.`,
+      message: `Statut modifié en « ${statusLabel(status)} ».`,
     });
   };
 
