@@ -149,6 +149,12 @@ function PortalPage() {
           </CardContent>
         </Card>
 
+        {((lead as any).contract_path || (lead as any).signed_contract_path) && (
+          <ContractCard lead={lead} onChange={reload} />
+        )}
+
+
+
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Mes factures & documents</CardTitle>
