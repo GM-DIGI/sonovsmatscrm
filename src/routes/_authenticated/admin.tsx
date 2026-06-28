@@ -41,14 +41,14 @@ function AdminPage() {
 
   if (loading) return (
     <AppShell role={role}>
-      <div className="grid h-64 place-items-center text-muted-foreground">Loading…</div>
+      <div className="grid h-64 place-items-center text-muted-foreground">Chargement…</div>
     </AppShell>
   );
 
   if (role !== "admin")
     return (
       <AppShell role={role}>
-        <div className="p-8 text-center text-muted-foreground">Admin access only.</div>
+        <div className="p-8 text-center text-muted-foreground">Accès administrateur uniquement.</div>
       </AppShell>
     );
 
