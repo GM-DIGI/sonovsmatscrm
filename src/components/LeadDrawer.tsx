@@ -31,10 +31,12 @@ import {
 import { BrandedInvoice } from "./BrandedInvoice";
 import { downloadInvoicePdf, generateAndUploadInvoicePdf } from "@/lib/pdf";
 import { toast } from "sonner";
-import { Check, X, Send, FileText, MessageCircle, Lock, PartyPopper, ExternalLink, Loader2 } from "lucide-react";
+import { Check, X, Send, FileText, MessageCircle, Lock, PartyPopper, ExternalLink, Loader2, Mail } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useServerFn } from "@tanstack/react-start";
+import { inviteClientForLead } from "@/lib/admin.functions";
 
 type Lead = Tables<"leads">;
 type Doc = Tables<"documents">;
