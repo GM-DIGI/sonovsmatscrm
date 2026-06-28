@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
-import { listAllUsers, grantRole, revokeRole, createStaffUser } from "@/lib/admin.functions";
+import { listAllUsers, grantRole, revokeRole, createStaffUser, resendInvite } from "@/lib/admin.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ function AdminPage() {
   const list = useServerFn(listAllUsers);
   const grant = useServerFn(grantRole);
   const revoke = useServerFn(revokeRole);
+  const resend = useServerFn(resendInvite);
   const [users, setUsers] = useState<Person[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -138,16 +139,44 @@ function AdminPage() {
                         {new Date(u.created_at).toLocaleDateString("fr-FR")}
                       </td>
                       <td className="p-2 text-right">
-                        <Select onValueChange={(v) => doGrant(u.id, v as never)} value="">
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Attribuer…" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Administrateur</SelectItem>
-                            <SelectItem value="agent">Agent</SelectItem>
-                            <SelectItem value="client">Client</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center justify-end gap-2">
+                          {u.email && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={busy === u.id}
+                              onClick={async () => {
+                                setBusy(u.id);
+                                try {
+                                  await resend({
+                                    data: {
+                                      email: u.email!,
+                                      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined,
+                                    },
+                                  });
+                                  toast.success(`Invitation renvoyée à ${u.email}`);
+                                } catch (e) {
+                                  toast.error((e as Error).message);
+                                } finally {
+                                  setBusy(null);
+                                }
+                              }}
+                            >
+                              Renvoyer l'invitation
+                            </Button>
+                          )}
+                          <Select onValueChange={(v) => doGrant(u.id, v as never)} value="">
+                            <SelectTrigger className="w-32">
+                              <SelectValue placeholder="Attribuer…" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Administrateur</SelectItem>
+                              <SelectItem value="agent">Agent</SelectItem>
+                              <SelectItem value="client">Client</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </td>
                     </tr>
                   ))}

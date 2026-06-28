@@ -36,7 +36,7 @@ import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
-import { inviteClientForLead } from "@/lib/admin.functions";
+import { inviteClientForLead, resendInvite } from "@/lib/admin.functions";
 
 type Lead = Tables<"leads">;
 type Doc = Tables<"documents">;
@@ -206,9 +206,9 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="Appartement">Appartement</SelectItem>
-              <SelectItem value="Villa">Villa</SelectItem>
-              <SelectItem value="Bureau">Bureau</SelectItem>
+              {["Appartement", "Studio", "Villa", "Maison", "Bureau", "Local commercial", "Terrain"].map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -678,21 +678,16 @@ function FinancesTab({
 
 function InviteClientButton({ lead }: { lead: Lead }) {
   const invite = useServerFn(inviteClientForLead);
+  const resend = useServerFn(resendInvite);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<boolean>(!!lead.client_user_id);
 
-  if (sent) {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--success)]/15 px-2.5 py-1.5 text-xs font-medium text-[color:var(--success)]">
-        <Check className="h-3.5 w-3.5" /> Invitation envoyée
-      </span>
-    );
-  }
+  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined;
 
-  const onClick = async () => {
+  const doInvite = async () => {
     setBusy(true);
     try {
-      await invite({ data: { leadId: lead.id, redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined } });
+      await invite({ data: { leadId: lead.id, redirectTo } });
       toast.success(`Invitation envoyée à ${lead.email}`);
       setSent(true);
     } catch (e) {
@@ -702,8 +697,35 @@ function InviteClientButton({ lead }: { lead: Lead }) {
     }
   };
 
+  const doResend = async () => {
+    if (!lead.email) return;
+    setBusy(true);
+    try {
+      await resend({ data: { email: lead.email, leadId: lead.id, redirectTo } });
+      toast.success(`Invitation renvoyée à ${lead.email}`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (sent) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--success)]/15 px-2.5 py-1.5 text-xs font-medium text-[color:var(--success)]">
+          <Check className="h-3.5 w-3.5" /> Invitation envoyée
+        </span>
+        <Button type="button" variant="outline" size="sm" onClick={doResend} disabled={busy || !lead.email}>
+          {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Mail className="mr-1.5 h-4 w-4" />}
+          {busy ? "Envoi…" : "Renvoyer"}
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Button type="button" variant="outline" size="sm" onClick={onClick} disabled={busy || !lead.email}>
+    <Button type="button" variant="outline" size="sm" onClick={doInvite} disabled={busy || !lead.email}>
       {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Mail className="mr-1.5 h-4 w-4" />}
       {busy ? "Envoi…" : "Inviter le client"}
     </Button>

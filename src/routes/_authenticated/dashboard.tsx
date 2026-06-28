@@ -224,9 +224,9 @@ function NewLeadDialog({ onCreated, agentId }: { onCreated: () => void; agentId:
             <Select value={form.property_type} onValueChange={(v) => setForm({ ...form, property_type: v as Lead["property_type"] })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Appartement">Appartement</SelectItem>
-                <SelectItem value="Villa">Villa</SelectItem>
-                <SelectItem value="Bureau">Bureau</SelectItem>
+                {["Appartement", "Studio", "Villa", "Maison", "Bureau", "Local commercial", "Terrain"].map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
