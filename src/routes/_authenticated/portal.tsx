@@ -101,17 +101,17 @@ function PortalPage() {
       <div className="mx-auto max-w-5xl space-y-6 p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Hello, {lead.client_name.split(" ")[0]}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Bonjour, {lead.client_name.split(" ")[0]}</h1>
             <p className="text-sm text-muted-foreground">
-              Your personal journey to {lead.property_type.toLowerCase()} ownership.
+              Votre parcours personnalisé pour votre futur bien ({lead.property_type.toLowerCase()}).
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{lead.property_type}</Badge>
-            <Badge>{lead.status}</Badge>
+            <Badge>{statusLabel(lead.status)}</Badge>
             {lead.locked && (
               <Badge className="bg-[color:var(--success)] text-[color:var(--success-foreground)]">
-                <Lock className="mr-1 h-3 w-3" /> Finalised
+                <Lock className="mr-1 h-3 w-3" /> Finalisé
               </Badge>
             )}
           </div>
@@ -119,7 +119,7 @@ function PortalPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Your journey</CardTitle>
+            <CardTitle className="text-base">Votre parcours</CardTitle>
           </CardHeader>
           <CardContent>
             <JourneyStepper status={lead.status} />
@@ -129,9 +129,9 @@ function PortalPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Required documents</CardTitle>
+              <CardTitle className="text-base">Documents requis</CardTitle>
               <span className="text-xs text-muted-foreground">
-                {docs.filter((d) => d.status === "Approved").length} approved
+                {docs.filter((d) => d.status === "Approved").length} approuvé(s)
               </span>
             </div>
           </CardHeader>
@@ -151,11 +151,11 @@ function PortalPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">My invoices & documents</CardTitle>
+            <CardTitle className="text-base">Mes factures & documents</CardTitle>
           </CardHeader>
           <CardContent>
             {invoices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No invoices yet.</p>
+              <p className="text-sm text-muted-foreground">Aucune facture pour le moment.</p>
             ) : (
               <ul className="divide-y divide-border">
                 {invoices.map((inv) => (
@@ -164,10 +164,10 @@ function PortalPage() {
                       <FileText className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <div className="font-medium">
-                          {inv.invoice_type} · <span className="font-mono">{inv.invoice_number}</span>
+                          {invoiceTypeLabel(inv.invoice_type)} · <span className="font-mono">{inv.invoice_number}</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Issued {fmtDate(inv.issue_date)} · Due {fmtDate(inv.due_date)}
+                          Émise le {fmtDate(inv.issue_date)} · Échéance {fmtDate(inv.due_date)}
                         </div>
                       </div>
                     </div>
@@ -177,10 +177,10 @@ function PortalPage() {
                           inv.status === "Paid" && "bg-[color:var(--success)] text-[color:var(--success-foreground)]",
                         )}
                       >
-                        {inv.status}
+                        {invoiceStatusLabel(inv.status)}
                       </Badge>
                       <div className="text-sm font-semibold">{fmtMoney(inv.amount)}</div>
-                      <Button variant="ghost" size="sm" onClick={() => setPreviewInvoice(inv)}>View</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setPreviewInvoice(inv)}>Voir</Button>
                       <Button variant="ghost" size="sm" onClick={() => downloadInvoicePdf(inv, lead)}>PDF</Button>
                     </div>
                   </li>
@@ -194,7 +194,7 @@ function PortalPage() {
       <Dialog open={!!previewInvoice} onOpenChange={(o) => !o && setPreviewInvoice(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Invoice</DialogTitle>
+            <DialogTitle>Facture</DialogTitle>
           </DialogHeader>
           {previewInvoice && <BrandedInvoice invoice={previewInvoice} lead={lead} />}
         </DialogContent>
