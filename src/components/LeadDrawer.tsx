@@ -206,9 +206,9 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="Appartement">Appartement</SelectItem>
-              <SelectItem value="Villa">Villa</SelectItem>
-              <SelectItem value="Bureau">Bureau</SelectItem>
+              {["Appartement", "Studio", "Villa", "Maison", "Bureau", "Local commercial", "Terrain"].map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
