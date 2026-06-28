@@ -8,7 +8,7 @@ import { JourneyStepper } from "@/components/JourneyStepper";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { REQUIRED_DOCS, fmtDate, fmtMoney } from "@/lib/format";
+import { REQUIRED_DOCS, fmtDate, fmtMoney, statusLabel, docLabel, docStatusLabel, invoiceStatusLabel, invoiceTypeLabel } from "@/lib/format";
 import { BrandedInvoice } from "@/components/BrandedInvoice";
 import { downloadInvoicePdf } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/portal")({
-  head: () => ({ meta: [{ title: "My journey · Atrium" }] }),
+  head: () => ({ meta: [{ title: "Mon parcours · Atrium" }] }),
   component: PortalPage,
 });
 
@@ -66,7 +66,7 @@ function PortalPage() {
   if (loading) {
     return (
       <AppShell role={role}>
-        <div className="grid h-64 place-items-center text-sm text-muted-foreground">Loading…</div>
+        <div className="grid h-64 place-items-center text-sm text-muted-foreground">Chargement…</div>
       </AppShell>
     );
   }
@@ -75,11 +75,11 @@ function PortalPage() {
     return (
       <AppShell role={role}>
         <div className="mx-auto max-w-2xl space-y-4 p-8">
-          <h1 className="text-2xl font-semibold">Welcome to Atrium</h1>
+          <h1 className="text-2xl font-semibold">Bienvenue chez Atrium</h1>
           <p className="text-muted-foreground">
-            We couldn't find an active file associated with your email address. Your real estate
-            agent will create your file shortly — once they do, your personalised journey will
-            appear here automatically.
+            Aucun dossier actif n'a été trouvé pour votre adresse e-mail. Votre agent immobilier
+            créera votre dossier sous peu — dès qu'il sera prêt, votre parcours personnalisé
+            apparaîtra automatiquement ici.
           </p>
           <Card>
             <CardContent className="flex items-center gap-3 p-4">
@@ -87,7 +87,7 @@ function PortalPage() {
                 <Building2 className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="text-sm text-muted-foreground">
-                Signed in as <b>{user?.email}</b>. Ask your agent to create a lead with this email.
+                Connecté en tant que <b>{user?.email}</b>. Demandez à votre agent de créer un lead avec cette adresse.
               </div>
             </CardContent>
           </Card>
@@ -101,17 +101,17 @@ function PortalPage() {
       <div className="mx-auto max-w-5xl space-y-6 p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Hello, {lead.client_name.split(" ")[0]}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Bonjour, {lead.client_name.split(" ")[0]}</h1>
             <p className="text-sm text-muted-foreground">
-              Your personal journey to {lead.property_type.toLowerCase()} ownership.
+              Votre parcours personnalisé pour votre futur bien ({lead.property_type.toLowerCase()}).
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline">{lead.property_type}</Badge>
-            <Badge>{lead.status}</Badge>
+            <Badge>{statusLabel(lead.status)}</Badge>
             {lead.locked && (
               <Badge className="bg-[color:var(--success)] text-[color:var(--success-foreground)]">
-                <Lock className="mr-1 h-3 w-3" /> Finalised
+                <Lock className="mr-1 h-3 w-3" /> Finalisé
               </Badge>
             )}
           </div>
@@ -119,7 +119,7 @@ function PortalPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Your journey</CardTitle>
+            <CardTitle className="text-base">Votre parcours</CardTitle>
           </CardHeader>
           <CardContent>
             <JourneyStepper status={lead.status} />
@@ -129,9 +129,9 @@ function PortalPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Required documents</CardTitle>
+              <CardTitle className="text-base">Documents requis</CardTitle>
               <span className="text-xs text-muted-foreground">
-                {docs.filter((d) => d.status === "Approved").length} approved
+                {docs.filter((d) => d.status === "Approved").length} approuvé(s)
               </span>
             </div>
           </CardHeader>
@@ -151,11 +151,11 @@ function PortalPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">My invoices & documents</CardTitle>
+            <CardTitle className="text-base">Mes factures & documents</CardTitle>
           </CardHeader>
           <CardContent>
             {invoices.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No invoices yet.</p>
+              <p className="text-sm text-muted-foreground">Aucune facture pour le moment.</p>
             ) : (
               <ul className="divide-y divide-border">
                 {invoices.map((inv) => (
@@ -164,10 +164,10 @@ function PortalPage() {
                       <FileText className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <div className="font-medium">
-                          {inv.invoice_type} · <span className="font-mono">{inv.invoice_number}</span>
+                          {invoiceTypeLabel(inv.invoice_type)} · <span className="font-mono">{inv.invoice_number}</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Issued {fmtDate(inv.issue_date)} · Due {fmtDate(inv.due_date)}
+                          Émise le {fmtDate(inv.issue_date)} · Échéance {fmtDate(inv.due_date)}
                         </div>
                       </div>
                     </div>
@@ -177,10 +177,10 @@ function PortalPage() {
                           inv.status === "Paid" && "bg-[color:var(--success)] text-[color:var(--success-foreground)]",
                         )}
                       >
-                        {inv.status}
+                        {invoiceStatusLabel(inv.status)}
                       </Badge>
                       <div className="text-sm font-semibold">{fmtMoney(inv.amount)}</div>
-                      <Button variant="ghost" size="sm" onClick={() => setPreviewInvoice(inv)}>View</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setPreviewInvoice(inv)}>Voir</Button>
                       <Button variant="ghost" size="sm" onClick={() => downloadInvoicePdf(inv, lead)}>PDF</Button>
                     </div>
                   </li>
@@ -194,7 +194,7 @@ function PortalPage() {
       <Dialog open={!!previewInvoice} onOpenChange={(o) => !o && setPreviewInvoice(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Invoice</DialogTitle>
+            <DialogTitle>Facture</DialogTitle>
           </DialogHeader>
           {previewInvoice && <BrandedInvoice invoice={previewInvoice} lead={lead} />}
         </DialogContent>
@@ -240,7 +240,7 @@ function DocSlot({
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Uploaded — agent will review shortly");
+    toast.success("Document envoyé — votre agent va l'examiner");
     onChange();
   };
 
@@ -267,22 +267,22 @@ function DocSlot({
             {approved ? <Check className="h-4 w-4" /> : rejected ? <AlertCircle className="h-4 w-4" /> : "?"}
           </div>
           <div>
-            <div className="font-medium">{type}</div>
+            <div className="font-medium">{docLabel(type)}</div>
             <div className="text-xs text-muted-foreground">
               {approved
-                ? "Approved"
+                ? "Approuvé"
                 : rejected
-                ? `Rejected — ${latest?.rejection_reason ?? "please re-upload"}`
+                ? `Rejeté — ${latest?.rejection_reason ?? "merci de redéposer"}`
                 : latest
-                ? "Awaiting review"
-                : "Not uploaded yet"}
+                ? "En attente de validation"
+                : "Non envoyé"}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {latest && (
             <Button size="sm" variant="ghost" onClick={() => view(latest.file_path)}>
-              View
+              Voir
             </Button>
           )}
           {!locked && !approved && (
@@ -295,7 +295,7 @@ function DocSlot({
                 onChange={(e) => onFile(e.target.files?.[0])}
               />
               <Button size="sm" disabled={busy} onClick={() => inputRef.current?.click()}>
-                <Upload className="mr-1 h-3.5 w-3.5" /> {latest ? "Re-upload" : "Upload"}
+                <Upload className="mr-1 h-3.5 w-3.5" /> {latest ? "Redéposer" : "Téléverser"}
               </Button>
             </>
           )}

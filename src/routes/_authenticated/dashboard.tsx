@@ -27,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
+import { statusLabel } from "@/lib/format";
+
 function DashboardPage() {
   const { user, role, loading } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -93,7 +95,7 @@ function DashboardPage() {
     await supabase.from("lead_activities").insert({
       lead_id: lead.id,
       kind: "status",
-      message: `Status changed to “${status}”.`,
+      message: `Statut modifié en « ${statusLabel(status)} ».`,
     });
   };
 
@@ -107,8 +109,8 @@ function DashboardPage() {
             <h1 className="text-2xl font-semibold tracking-tight">Pipeline</h1>
             <p className="text-sm text-muted-foreground">
               {role === "admin"
-                ? "All leads across every agent."
-                : "Your active leads, grouped by stage."}
+                ? "Tous les leads, tous agents confondus."
+                : "Vos leads actifs, regroupés par étape."}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -117,7 +119,7 @@ function DashboardPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search leads…"
+                placeholder="Rechercher un lead…"
                 className="w-64 pl-8"
               />
             </div>
@@ -134,7 +136,7 @@ function DashboardPage() {
                   key={s}
                   className="rounded-xl border border-border bg-card p-3"
                 >
-                  <div className="text-xs text-muted-foreground">{s}</div>
+                  <div className="text-xs text-muted-foreground">{statusLabel(s)}</div>
                   <div className="mt-1 text-2xl font-semibold">{n}</div>
                 </div>
               );
@@ -172,7 +174,7 @@ function NewLeadDialog({ onCreated, agentId }: { onCreated: () => void; agentId:
   const [busy, setBusy] = useState(false);
 
   const save = async () => {
-    if (!form.client_name || !form.email) return toast.error("Name and email required");
+    if (!form.client_name || !form.email) return toast.error("Nom et e-mail obligatoires");
     setBusy(true);
     const { error } = await supabase.from("leads").insert({
       client_name: form.client_name,
@@ -185,7 +187,7 @@ function NewLeadDialog({ onCreated, agentId }: { onCreated: () => void; agentId:
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Lead added — invite the client by asking them to sign up with this email.");
+    toast.success("Lead créé — invitez le client à créer un compte avec cet e-mail.");
     setOpen(false);
     setForm({ client_name: "", email: "", phone: "", budget: "", property_type: "Appartement" });
     onCreated();
@@ -194,23 +196,23 @@ function NewLeadDialog({ onCreated, agentId }: { onCreated: () => void; agentId:
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-brand"><Plus className="mr-1 h-4 w-4" /> New lead</Button>
+        <Button className="bg-gradient-brand"><Plus className="mr-1 h-4 w-4" /> Nouveau lead</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create new lead</DialogTitle>
+          <DialogTitle>Créer un nouveau lead</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2 space-y-1.5">
-            <Label>Client name</Label>
+            <Label>Nom du client</Label>
             <Input value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} />
           </div>
           <div className="space-y-1.5">
-            <Label>Email</Label>
+            <Label>E-mail</Label>
             <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div className="space-y-1.5">
-            <Label>Phone</Label>
+            <Label>Téléphone</Label>
             <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
           </div>
           <div className="space-y-1.5">
@@ -218,7 +220,7 @@ function NewLeadDialog({ onCreated, agentId }: { onCreated: () => void; agentId:
             <Input type="number" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} />
           </div>
           <div className="space-y-1.5">
-            <Label>Property type</Label>
+            <Label>Type de bien</Label>
             <Select value={form.property_type} onValueChange={(v) => setForm({ ...form, property_type: v as Lead["property_type"] })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -230,8 +232,8 @@ function NewLeadDialog({ onCreated, agentId }: { onCreated: () => void; agentId:
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={save} disabled={busy} className="bg-gradient-brand">Create lead</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+          <Button onClick={save} disabled={busy} className="bg-gradient-brand">Créer le lead</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

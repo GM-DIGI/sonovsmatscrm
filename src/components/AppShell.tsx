@@ -6,6 +6,7 @@ import { useAuth, type AppRole } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { roleLabel } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,10 +31,10 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
 
   const staffNav = [
     { to: "/dashboard", label: "Pipeline", icon: KanbanSquare },
-    { to: "/invoices", label: "Invoices", icon: FileText },
+    { to: "/invoices", label: "Factures", icon: FileText },
   ];
-  const adminExtra = [{ to: "/admin", label: "Team & Roles", icon: Users }];
-  const clientNav = [{ to: "/portal", label: "My journey", icon: Home }];
+  const adminExtra = [{ to: "/admin", label: "Équipe & rôles", icon: Users }];
+  const clientNav = [{ to: "/portal", label: "Mon parcours", icon: Home }];
 
   const nav = role === "client" ? clientNav : role === "admin" ? [...staffNav, ...adminExtra] : staffNav;
 
@@ -46,13 +47,13 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
           </div>
           <div>
             <div className="text-sm font-semibold leading-none">Atrium</div>
-            <div className="text-[10px] uppercase tracking-wider opacity-60">Real Estate CRM</div>
+            <div className="text-[10px] uppercase tracking-wider opacity-60">CRM Immobilier</div>
           </div>
         </div>
         <div className="px-3 py-2">
           {role && (
             <Badge variant="outline" className="border-white/10 bg-white/5 text-[10px] uppercase tracking-wider text-[color:var(--sidebar-foreground)]">
-              {role}
+              {roleLabel(role)}
             </Badge>
           )}
         </div>
@@ -92,12 +93,12 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-56">
-              <DropdownMenuLabel>Signed in as</DropdownMenuLabel>
+              <DropdownMenuLabel>Connecté en tant que</DropdownMenuLabel>
               <DropdownMenuItem disabled className="opacity-70">{user?.email}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign out
+                Se déconnecter
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -169,7 +170,7 @@ function NotificationsBell() {
           {items.length === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-muted-foreground">
               <ShieldCheck className="mx-auto mb-2 h-6 w-6 opacity-50" />
-              You're all caught up.
+              Tout est à jour.
             </div>
           ) : (
             <ul className="divide-y divide-border">
@@ -178,7 +179,7 @@ function NotificationsBell() {
                   <div className="font-medium">{n.title}</div>
                   {n.message && <div className="text-muted-foreground">{n.message}</div>}
                   <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {new Date(n.created_at).toLocaleString()}
+                    {new Date(n.created_at).toLocaleString("fr-FR")}
                   </div>
                 </li>
               ))}

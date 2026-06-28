@@ -17,7 +17,17 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { REQUIRED_DOCS, STATUSES, fmtDate, fmtMoney } from "@/lib/format";
+import {
+  REQUIRED_DOCS,
+  STATUSES,
+  fmtDate,
+  fmtMoney,
+  statusLabel,
+  docLabel,
+  docStatusLabel,
+  invoiceStatusLabel,
+  invoiceTypeLabel,
+} from "@/lib/format";
 import { BrandedInvoice } from "./BrandedInvoice";
 import { downloadInvoicePdf, generateAndUploadInvoicePdf } from "@/lib/pdf";
 import { toast } from "sonner";
@@ -81,13 +91,13 @@ export function LeadDrawer({
               <SheetTitle className="text-xl">{lead.client_name}</SheetTitle>
               <SheetDescription className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">{lead.property_type}</Badge>
-                <Badge>{lead.status}</Badge>
+                <Badge>{statusLabel(lead.status)}</Badge>
                 <span className="text-sm font-medium text-[color:var(--accent)]">
                   {fmtMoney(lead.budget)}
                 </span>
                 {lead.locked && (
                   <Badge variant="secondary" className="bg-[color:var(--success)]/20 text-[color:var(--success)]">
-                    <Lock className="mr-1 h-3 w-3" /> Locked
+                    <Lock className="mr-1 h-3 w-3" /> Verrouillé
                   </Badge>
                 )}
               </SheetDescription>
@@ -97,9 +107,9 @@ export function LeadDrawer({
 
         <Tabs defaultValue="overview" className="p-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview & Activity</TabsTrigger>
+            <TabsTrigger value="overview">Aperçu & activité</TabsTrigger>
             <TabsTrigger value="docs">Documents</TabsTrigger>
-            <TabsTrigger value="finances">Finances & Contract</TabsTrigger>
+            <TabsTrigger value="finances">Finances & contrat</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4">
@@ -143,7 +153,7 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
       })
       .eq("id", lead.id);
     if (error) return toast.error(error.message);
-    toast.success("Lead updated");
+    toast.success("Lead mis à jour");
   };
 
   const addNote = async () => {
@@ -161,7 +171,7 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label>Client name</Label>
+          <Label>Nom du client</Label>
           <Input
             value={form.client_name}
             onChange={(e) => setForm({ ...form, client_name: e.target.value })}
@@ -169,11 +179,11 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Email</Label>
+          <Label>E-mail</Label>
           <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} disabled={!canEdit} />
         </div>
         <div className="space-y-1.5">
-          <Label>Phone</Label>
+          <Label>Téléphone</Label>
           <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} disabled={!canEdit} />
         </div>
         <div className="space-y-1.5">
@@ -186,7 +196,7 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
           />
         </div>
         <div className="space-y-1.5">
-          <Label>Property type</Label>
+          <Label>Type de bien</Label>
           <Select
             value={form.property_type}
             onValueChange={(v) => setForm({ ...form, property_type: v as Lead["property_type"] })}
@@ -201,7 +211,7 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label>Status</Label>
+          <Label>Statut</Label>
           <Select
             value={form.status}
             onValueChange={(v) => setForm({ ...form, status: v as Lead["status"] })}
@@ -209,13 +219,13 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {STATUSES.map((s) => <SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label>Internal notes</Label>
+        <Label>Notes internes</Label>
         <Textarea
           rows={3}
           value={form.notes}
@@ -225,34 +235,34 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
       </div>
       {canEdit && (
         <div className="flex justify-end">
-          <Button onClick={save} className="bg-gradient-brand">Save changes</Button>
+          <Button onClick={save} className="bg-gradient-brand">Enregistrer</Button>
         </div>
       )}
 
       <div>
-        <h4 className="text-sm font-semibold">Activity timeline</h4>
+        <h4 className="text-sm font-semibold">Journal d'activité</h4>
         {canEdit && (
           <div className="mt-2 flex gap-2">
             <Input
-              placeholder="Log an interaction… (call, meeting, email)"
+              placeholder="Consigner une interaction… (appel, rendez-vous, e-mail)"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addNote()}
             />
-            <Button onClick={addNote} size="sm"><MessageCircle className="mr-1 h-4 w-4" /> Log</Button>
+            <Button onClick={addNote} size="sm"><MessageCircle className="mr-1 h-4 w-4" /> Ajouter</Button>
           </div>
         )}
         <ul className="mt-4 space-y-3">
           {acts.length === 0 && (
             <li className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
-              No activity yet.
+              Aucune activité pour le moment.
             </li>
           )}
           {acts.map((a) => (
             <li key={a.id} className="rounded-lg border border-border bg-card p-3">
               <div className="text-sm">{a.message}</div>
               <div className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                {a.kind} · {new Date(a.created_at).toLocaleString()}
+                {a.kind} · {new Date(a.created_at).toLocaleString("fr-FR")}
               </div>
             </li>
           ))}
@@ -274,14 +284,14 @@ function DocsTab({ lead, docs, isStaff }: { lead: Lead; docs: Doc[]; isStaff: bo
       {grouped.map((g) => (
         <div key={g.type} className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center justify-between">
-            <div className="font-medium">{g.type}</div>
+            <div className="font-medium">{docLabel(g.type)}</div>
             <Badge variant={g.items.some((i) => i.status === "Approved") ? "default" : "outline"}>
-              {g.items.length} file(s)
+              {g.items.length} fichier(s)
             </Badge>
           </div>
           <ul className="mt-3 space-y-2">
             {g.items.length === 0 && (
-              <li className="text-xs text-muted-foreground">Waiting on client upload.</li>
+              <li className="text-xs text-muted-foreground">En attente du dépôt par le client.</li>
             )}
             {g.items.map((d) => (
               <DocItem key={d.id} doc={d} isStaff={isStaff} locked={lead.locked} />
@@ -291,7 +301,7 @@ function DocsTab({ lead, docs, isStaff }: { lead: Lead; docs: Doc[]; isStaff: bo
       ))}
       {otherDocs.length > 0 && (
         <div className="rounded-lg border border-border bg-card p-4">
-          <div className="font-medium">Other documents</div>
+          <div className="font-medium">Autres documents</div>
           <ul className="mt-3 space-y-2">
             {otherDocs.map((d) => <DocItem key={d.id} doc={d} isStaff={isStaff} locked={lead.locked} />)}
           </ul>
@@ -314,11 +324,11 @@ function DocItem({ doc, isStaff, locked }: { doc: Doc; isStaff: boolean; locked:
       .eq("id", doc.id);
     setBusy(false);
     if (error) return toast.error(error.message);
-    await notifyClient(doc, `Your ${doc.document_type} was approved.`);
-    toast.success("Approved");
+    await notifyClient(doc, `Votre ${docLabel(doc.document_type)} a été approuvé.`);
+    toast.success("Approuvé");
   };
   const reject = async () => {
-    if (!reason.trim()) return toast.error("Reason required");
+    if (!reason.trim()) return toast.error("Motif obligatoire");
     setBusy(true);
     const { error } = await supabase
       .from("documents")
@@ -326,8 +336,8 @@ function DocItem({ doc, isStaff, locked }: { doc: Doc; isStaff: boolean; locked:
       .eq("id", doc.id);
     setBusy(false);
     if (error) return toast.error(error.message);
-    await notifyClient(doc, `Your ${doc.document_type} was rejected: ${reason}`);
-    toast.success("Rejected and client notified");
+    await notifyClient(doc, `Votre ${docLabel(doc.document_type)} a été rejeté : ${reason}`);
+    toast.success("Rejeté — client notifié");
     setRejecting(false);
     setReason("");
   };
@@ -345,10 +355,10 @@ function DocItem({ doc, isStaff, locked }: { doc: Doc; isStaff: boolean; locked:
         <button onClick={view} className="truncate text-left hover:underline">
           {doc.file_name ?? doc.file_path.split("/").pop()}
         </button>
-        <StatusPill status={doc.status} />
+        <StatusPill status={doc.status} kind="doc" />
       </div>
       {doc.status === "Rejected" && doc.rejection_reason && (
-        <div className="basis-full text-xs text-destructive">Reason: {doc.rejection_reason}</div>
+        <div className="basis-full text-xs text-destructive">Motif : {doc.rejection_reason}</div>
       )}
       {isStaff && !locked && (
         <div className="flex items-center gap-1">
@@ -367,12 +377,12 @@ function DocItem({ doc, isStaff, locked }: { doc: Doc; isStaff: boolean; locked:
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Reject document</DialogTitle>
+                  <DialogTitle>Rejeter le document</DialogTitle>
                 </DialogHeader>
-                <Textarea placeholder="Why is this document being rejected?" value={reason} onChange={(e) => setReason(e.target.value)} />
+                <Textarea placeholder="Pourquoi ce document est-il rejeté ?" value={reason} onChange={(e) => setReason(e.target.value)} />
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setRejecting(false)}>Cancel</Button>
-                  <Button variant="destructive" onClick={reject} disabled={busy}>Reject & notify</Button>
+                  <Button variant="outline" onClick={() => setRejecting(false)}>Annuler</Button>
+                  <Button variant="destructive" onClick={reject} disabled={busy}>Rejeter & notifier</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -383,7 +393,7 @@ function DocItem({ doc, isStaff, locked }: { doc: Doc; isStaff: boolean; locked:
   );
 }
 
-function StatusPill({ status }: { status: string }) {
+function StatusPill({ status, kind }: { status: string; kind?: "doc" | "invoice" }) {
   const map: Record<string, string> = {
     Pending: "bg-amber-100 text-amber-800",
     Approved: "bg-[color:var(--success)]/15 text-[color:var(--success)]",
@@ -393,9 +403,10 @@ function StatusPill({ status }: { status: string }) {
     Paid: "bg-[color:var(--success)]/15 text-[color:var(--success)]",
     Overdue: "bg-destructive/15 text-destructive",
   };
+  const label = kind === "invoice" ? invoiceStatusLabel(status) : docStatusLabel(status);
   return (
     <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", map[status] ?? "bg-muted")}>
-      {status}
+      {label}
     </span>
   );
 }
@@ -406,7 +417,7 @@ async function notifyClient(doc: Doc, message: string) {
   await supabase.from("notifications").insert({
     user_id: lead.client_user_id,
     lead_id: doc.lead_id,
-    title: `Document ${doc.status === "Approved" ? "approved" : "needs attention"}`,
+    title: `Document ${doc.status === "Approved" ? "approuvé" : "à corriger"}`,
     message,
   });
 }
@@ -439,7 +450,7 @@ function FinancesTab({
   const createInvoice = async () => {
     if (!genOpen) return;
     const amt = Number(amount);
-    if (!amt || amt <= 0) return toast.error("Enter a valid amount");
+    if (!amt || amt <= 0) return toast.error("Saisissez un montant valide");
     setBusy(true);
     const year = new Date().getFullYear();
     const prefix = genOpen === "Proforma" ? "PRO" : "INV";
@@ -460,18 +471,18 @@ function FinancesTab({
       .single();
     if (error || !data) {
       setBusy(false);
-      return toast.error(error?.message ?? "Failed");
+      return toast.error(error?.message ?? "Échec");
     }
     try {
       await generateAndUploadInvoicePdf(data as Invoice, lead);
     } catch (e) {
-      toast.warning("Invoice saved but PDF upload failed: " + (e as Error).message);
+      toast.warning("Facture enregistrée, mais l'envoi du PDF a échoué : " + (e as Error).message);
     }
     if (lead.client_user_id) {
       await supabase.from("notifications").insert({
         user_id: lead.client_user_id,
         lead_id: lead.id,
-        title: `New ${genOpen} invoice`,
+        title: `Nouvelle facture ${invoiceTypeLabel(genOpen)}`,
         message: `${invoice_number} — ${fmtMoney(amt)}`,
       });
     }
@@ -479,7 +490,7 @@ function FinancesTab({
     setGenOpen(null);
     setAmount("");
     setPreview(data as Invoice);
-    toast.success(`${genOpen} invoice generated`);
+    toast.success(`Facture ${invoiceTypeLabel(genOpen)} générée`);
   };
 
   const sendToYousign = async () => {
@@ -492,18 +503,18 @@ function FinancesTab({
     if (!error) {
       await supabase.from("lead_activities").insert({
         lead_id: lead.id,
-        message: "Contract sent to Yousign — awaiting signature.",
+        message: "Contrat envoyé à Yousign — en attente de signature.",
         kind: "system",
       });
       if (lead.client_user_id) {
         await supabase.from("notifications").insert({
           user_id: lead.client_user_id,
           lead_id: lead.id,
-          title: "Contract ready to sign",
-          message: "Please review and sign the documents on Yousign.",
+          title: "Contrat prêt à signer",
+          message: "Merci de relire et signer les documents sur Yousign.",
         });
       }
-      toast.success("Sent to Yousign — awaiting signature");
+      toast.success("Envoyé à Yousign — en attente de signature");
     } else toast.error(error.message);
     setBusy(false);
   };
@@ -516,19 +527,19 @@ function FinancesTab({
     await supabase.from("lead_activities").insert({
       lead_id: lead.id,
       kind: "system",
-      message: "Client signed contract and payment received. Lead locked.",
+      message: "Contrat signé par le client et paiement reçu. Dossier verrouillé.",
     });
     if (lead.client_user_id) {
       await supabase.from("notifications").insert({
         user_id: lead.client_user_id,
         lead_id: lead.id,
-        title: "All signed! 🎉",
-        message: "Your transaction is complete. Welcome home.",
+        title: "Tout est signé ! 🎉",
+        message: "Votre transaction est finalisée. Bienvenue chez vous.",
       });
     }
     confetti({ particleCount: 200, spread: 90, origin: { y: 0.4 } });
     setBusy(false);
-    toast.success("Signed & Closed");
+    toast.success("Signé & clôturé");
   };
 
   return (
@@ -542,43 +553,43 @@ function FinancesTab({
               disabled={!canProforma}
               onClick={() => setGenOpen("Proforma")}
             >
-              <FileText className="mr-2 h-4 w-4" /> Generate Proforma
+              <FileText className="mr-2 h-4 w-4" /> Générer une proforma
             </Button>
             <Button
               variant="outline"
               disabled={!canFinal}
               onClick={() => setGenOpen("Standard")}
             >
-              <FileText className="mr-2 h-4 w-4" /> Generate Final Invoice
+              <FileText className="mr-2 h-4 w-4" /> Générer la facture finale
             </Button>
             <Button
               className="bg-gradient-brand"
               disabled={!canYousign || busy}
               onClick={sendToYousign}
             >
-              <Send className="mr-2 h-4 w-4" /> Send to Yousign
+              <Send className="mr-2 h-4 w-4" /> Envoyer à Yousign
             </Button>
             <Button
               variant="secondary"
               disabled={busy || lead.locked || !hasFinalInvoice}
               onClick={simulate}
             >
-              <PartyPopper className="mr-2 h-4 w-4" /> Simulate signature & payment
+              <PartyPopper className="mr-2 h-4 w-4" /> Simuler signature & paiement
             </Button>
           </div>
           {!reqApproved && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Yousign requires every required document ({REQUIRED_DOCS.join(", ")}) to be Approved.
+              Yousign nécessite que tous les documents requis ({REQUIRED_DOCS.map(docLabel).join(", ")}) soient approuvés.
             </p>
           )}
         </div>
       )}
 
       <div>
-        <h4 className="mb-3 text-sm font-semibold">Invoices</h4>
+        <h4 className="mb-3 text-sm font-semibold">Factures</h4>
         {invoices.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            No invoices yet.
+            Aucune facture pour le moment.
           </div>
         ) : (
           <ul className="space-y-2">
@@ -590,16 +601,16 @@ function FinancesTab({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-sm">{inv.invoice_number}</span>
-                    <Badge variant="outline">{inv.invoice_type}</Badge>
-                    <StatusPill status={inv.status} />
+                    <Badge variant="outline">{invoiceTypeLabel(inv.invoice_type)}</Badge>
+                    <StatusPill status={inv.status} kind="invoice" />
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Issued {fmtDate(inv.issue_date)} · Due {fmtDate(inv.due_date)}
+                    Émise le {fmtDate(inv.issue_date)} · Échéance {fmtDate(inv.due_date)}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="font-semibold text-[color:var(--accent)]">{fmtMoney(inv.amount)}</div>
-                  <Button variant="ghost" size="sm" onClick={() => setPreview(inv)}>View</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setPreview(inv)}>Voir</Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -617,10 +628,10 @@ function FinancesTab({
       <Dialog open={!!genOpen} onOpenChange={(o) => !o && setGenOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Generate {genOpen} Invoice</DialogTitle>
+            <DialogTitle>Générer une facture {genOpen ? invoiceTypeLabel(genOpen) : ""}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Label>Amount (€)</Label>
+            <Label>Montant (€)</Label>
             <Input
               type="number"
               value={amount}
@@ -629,10 +640,10 @@ function FinancesTab({
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setGenOpen(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setGenOpen(null)}>Annuler</Button>
             <Button onClick={createInvoice} disabled={busy} className="bg-gradient-brand">
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generate
+              Générer
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -641,16 +652,16 @@ function FinancesTab({
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Invoice preview</DialogTitle>
+            <DialogTitle>Aperçu de la facture</DialogTitle>
           </DialogHeader>
           <AnimatePresence>
             {preview && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                 <BrandedInvoice invoice={preview} lead={lead} />
                 <div className="mt-4 flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setPreview(null)}>Close</Button>
+                  <Button variant="outline" onClick={() => setPreview(null)}>Fermer</Button>
                   <Button onClick={() => downloadInvoicePdf(preview, lead)} className="bg-gradient-brand">
-                    Download PDF
+                    Télécharger le PDF
                   </Button>
                 </div>
               </motion.div>
