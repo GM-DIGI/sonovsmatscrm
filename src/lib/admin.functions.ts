@@ -199,3 +199,51 @@ export const inviteClientForLead = createServerFn({ method: "POST" })
 
     return { ok: true, email: lead.email };
   });
+
+/**
+ * Renvoie une invitation Supabase à une adresse e-mail. Réservé aux admins,
+ * sauf pour l'agent assigné si un leadId est fourni.
+ */
+export const resendInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        email: z.string().email(),
+        redirectTo: z.string().url().optional(),
+        leadId: z.string().uuid().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: isAdmin } = await supabaseAdmin.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    let allowed = !!isAdmin;
+    if (!allowed && data.leadId) {
+      const { data: lead } = await supabaseAdmin
+        .from("leads")
+        .select("assigned_agent_id, email")
+        .eq("id", data.leadId)
+        .single();
+      allowed = !!lead && lead.assigned_agent_id === context.userId && lead.email === data.email;
+    }
+    if (!allowed) throw new Error("Forbidden");
+
+    const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
+      redirectTo: data.redirectTo,
+    });
+    if (error) throw new Error(error.message);
+
+    if (data.leadId) {
+      await supabaseAdmin.from("lead_activities").insert({
+        lead_id: data.leadId,
+        kind: "system",
+        message: `Invitation renvoyée à ${data.email}`,
+        author_id: context.userId,
+      });
+    }
+    return { ok: true };
+  });
