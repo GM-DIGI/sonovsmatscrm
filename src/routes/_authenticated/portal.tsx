@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { REQUIRED_DOCS, fmtDate, fmtMoney, statusLabel, docLabel, docStatusLabel, invoiceStatusLabel, invoiceTypeLabel } from "@/lib/format";
 import { BrandedInvoice } from "@/components/BrandedInvoice";
-import { downloadInvoicePdf } from "@/lib/pdf";
+import { downloadInvoicePdf, downloadStoragePdf } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload, Lock, FileText, Check, AlertCircle, Building2 } from "lucide-react";
 import { toast } from "sonner";
