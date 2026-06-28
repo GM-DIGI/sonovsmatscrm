@@ -56,7 +56,7 @@ function AdminPage() {
     setBusy(userId);
     try {
       await grant({ data: { userId, role: newRole } });
-      toast.success(`Granted ${newRole}`);
+      toast.success(`Rôle ${newRole} attribué`);
       await reload();
     } catch (e) {
       toast.error((e as Error).message);
@@ -68,7 +68,7 @@ function AdminPage() {
     setBusy(userId);
     try {
       await revoke({ data: { userId, role: r as "admin" | "agent" | "client" } });
-      toast.success(`Revoked ${r}`);
+      toast.success(`Rôle ${r} retiré`);
       await reload();
     } catch (e) {
       toast.error((e as Error).message);
