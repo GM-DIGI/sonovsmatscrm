@@ -35,7 +35,7 @@ function AppRouter() {
 
   return (
     <div className="grid min-h-screen place-items-center">
-      <div className="text-sm text-muted-foreground">Loading your workspace…</div>
+      <div className="text-sm text-muted-foreground">Chargement de votre espace…</div>
     </div>
   );
 }
