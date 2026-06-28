@@ -165,19 +165,44 @@ function CreateUserDialog({ onCreated }: { onCreated: () => Promise<void> }) {
   const create = useServerFn(createStaffUser);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "agent" as "agent" | "admin" });
+  const [status, setStatus] = useState<{ kind: "idle" | "ok" | "err"; msg: string }>({ kind: "idle", msg: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "agent" as "agent" | "admin",
+    sendInvite: true,
+  });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setStatus({ kind: "idle", msg: "" });
     try {
-      await create({ data: form });
-      toast.success(`Compte ${form.role} créé pour ${form.email}`);
-      setForm({ name: "", email: "", password: "", role: "agent" });
-      setOpen(false);
+      const res = (await create({
+        data: {
+          name: form.name,
+          email: form.email,
+          role: form.role,
+          sendInvite: form.sendInvite,
+          password: form.sendInvite ? undefined : form.password,
+        },
+      })) as { invited: boolean };
+      const okMsg = res.invited
+        ? `Invitation envoyée à ${form.email}`
+        : `Compte ${form.role} créé pour ${form.email}`;
+      setStatus({ kind: "ok", msg: okMsg });
+      toast.success(okMsg);
       await onCreated();
+      setTimeout(() => {
+        setForm({ name: "", email: "", password: "", role: "agent", sendInvite: true });
+        setOpen(false);
+        setStatus({ kind: "idle", msg: "" });
+      }, 1200);
     } catch (err) {
-      toast.error((err as Error).message);
+      const m = (err as Error).message;
+      setStatus({ kind: "err", msg: `Échec : ${m}` });
+      toast.error(m);
     } finally {
       setBusy(false);
     }
@@ -211,14 +236,6 @@ function CreateUserDialog({ onCreated }: { onCreated: () => Promise<void> }) {
             <Input id="cu-email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="cu-password">Mot de passe temporaire</Label>
-            <div className="flex gap-2">
-              <Input id="cu-password" required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-              <Button type="button" variant="outline" onClick={genPassword}>Générer</Button>
-            </div>
-            <p className="text-xs text-muted-foreground">L'utilisateur pourra se connecter immédiatement et le changer ensuite.</p>
-          </div>
-          <div className="grid gap-2">
             <Label>Rôle</Label>
             <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as "agent" | "admin" })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -228,9 +245,46 @@ function CreateUserDialog({ onCreated }: { onCreated: () => Promise<void> }) {
               </SelectContent>
             </Select>
           </div>
+          <label className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={form.sendInvite}
+              onChange={(e) => setForm({ ...form, sendInvite: e.target.checked })}
+            />
+            <span>
+              <span className="font-medium">Envoyer un e-mail d'invitation</span>
+              <span className="block text-xs text-muted-foreground">
+                L'utilisateur reçoit un lien pour définir son mot de passe lui-même.
+              </span>
+            </span>
+          </label>
+          {!form.sendInvite && (
+            <div className="grid gap-2">
+              <Label htmlFor="cu-password">Mot de passe temporaire</Label>
+              <div className="flex gap-2">
+                <Input id="cu-password" required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                <Button type="button" variant="outline" onClick={genPassword}>Générer</Button>
+              </div>
+              <p className="text-xs text-muted-foreground">L'utilisateur pourra se connecter immédiatement et le changer ensuite.</p>
+            </div>
+          )}
+          {status.kind !== "idle" && (
+            <div
+              className={
+                status.kind === "ok"
+                  ? "rounded-md border border-[color:var(--success)]/40 bg-[color:var(--success)]/10 px-3 py-2 text-sm text-[color:var(--success)]"
+                  : "rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              }
+            >
+              {status.msg}
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
-            <Button type="submit" disabled={busy}>{busy ? "Création…" : "Créer le compte"}</Button>
+            <Button type="submit" disabled={busy}>
+              {busy ? (form.sendInvite ? "Envoi…" : "Création…") : form.sendInvite ? "Envoyer l'invitation" : "Créer le compte"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

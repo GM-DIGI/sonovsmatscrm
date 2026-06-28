@@ -31,10 +31,12 @@ import {
 import { BrandedInvoice } from "./BrandedInvoice";
 import { downloadInvoicePdf, generateAndUploadInvoicePdf } from "@/lib/pdf";
 import { toast } from "sonner";
-import { Check, X, Send, FileText, MessageCircle, Lock, PartyPopper, ExternalLink, Loader2 } from "lucide-react";
+import { Check, X, Send, FileText, MessageCircle, Lock, PartyPopper, ExternalLink, Loader2, Mail } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useServerFn } from "@tanstack/react-start";
+import { inviteClientForLead } from "@/lib/admin.functions";
 
 type Lead = Tables<"leads">;
 type Doc = Tables<"documents">;
@@ -234,7 +236,8 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
         />
       </div>
       {canEdit && (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <InviteClientButton lead={lead} />
           <Button onClick={save} className="bg-gradient-brand">Enregistrer</Button>
         </div>
       )}
@@ -670,5 +673,39 @@ function FinancesTab({
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function InviteClientButton({ lead }: { lead: Lead }) {
+  const invite = useServerFn(inviteClientForLead);
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState<boolean>(!!lead.client_user_id);
+
+  if (sent) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--success)]/15 px-2.5 py-1.5 text-xs font-medium text-[color:var(--success)]">
+        <Check className="h-3.5 w-3.5" /> Invitation envoyée
+      </span>
+    );
+  }
+
+  const onClick = async () => {
+    setBusy(true);
+    try {
+      await invite({ data: { leadId: lead.id } });
+      toast.success(`Invitation envoyée à ${lead.email}`);
+      setSent(true);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={onClick} disabled={busy || !lead.email}>
+      {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Mail className="mr-1.5 h-4 w-4" />}
+      {busy ? "Envoi…" : "Inviter le client"}
+    </Button>
   );
 }
