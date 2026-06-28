@@ -26,6 +26,7 @@ function AdminPage() {
   const list = useServerFn(listAllUsers);
   const grant = useServerFn(grantRole);
   const revoke = useServerFn(revokeRole);
+  const resend = useServerFn(resendInvite);
   const [users, setUsers] = useState<Person[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
 
