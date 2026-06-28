@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Atrium — Real Estate CRM, Portal & Invoicing" },
+      { title: "Atrium — CRM immobilier, portail client & facturation" },
       {
         name: "description",
         content:
-          "Atrium runs your entire client journey: pipeline kanban, document review, branded invoicing, and e-signature — with a polished client portal.",
+          "Atrium pilote tout le parcours client : pipeline kanban, contrôle des documents, facturation de marque et signature électronique — avec un portail client soigné.",
       },
     ],
   }),
@@ -28,10 +28,10 @@ function Landing() {
         </div>
         <nav className="flex items-center gap-3">
           <Link to="/auth">
-            <Button variant="ghost" size="sm">Sign in</Button>
+            <Button variant="ghost" size="sm">Se connecter</Button>
           </Link>
           <Link to="/auth" search={{ mode: "signup" } as never}>
-            <Button size="sm">Get started</Button>
+            <Button size="sm">Commencer</Button>
           </Link>
         </nav>
       </header>
@@ -41,25 +41,25 @@ function Landing() {
           <div className="flex flex-col justify-center">
             <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-[color:var(--success)]" />
-              Multi-agent · Client portal · Branded invoicing
+              Multi-agents · Portail client · Facturation de marque
             </span>
             <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
-              The customer journey OS for{" "}
-              <span className="text-gradient-brand">modern real estate teams.</span>
+              L'OS du parcours client pour{" "}
+              <span className="text-gradient-brand">les équipes immobilières modernes.</span>
             </h1>
             <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
-              Move leads from <em>New</em> to <em>Signed</em> on a single elegant kanban. Review
-              client documents, generate Proforma & final invoices, and trigger e-signature — all
-              from one polished workspace.
+              Faites avancer vos leads de <em>Nouveau</em> à <em>Signé</em> sur un kanban élégant.
+              Contrôlez les documents clients, générez des factures proforma et finales, et lancez
+              la signature électronique — depuis un seul espace de travail.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/auth" search={{ mode: "signup" } as never}>
                 <Button size="lg" className="bg-gradient-brand">
-                  Start free <ArrowRight className="ml-2 h-4 w-4" />
+                  Démarrer gratuitement <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button size="lg" variant="outline">Sign in</Button>
+                <Button size="lg" variant="outline">Se connecter</Button>
               </Link>
             </div>
           </div>
@@ -70,10 +70,10 @@ function Landing() {
               <div className="rounded-xl bg-[color:var(--sidebar)] p-5 text-[color:var(--sidebar-foreground)]">
                 <div className="flex items-center justify-between text-xs opacity-70">
                   <span>Pipeline</span>
-                  <span>Q3 ‘26</span>
+                  <span>T3 ‘26</span>
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                  {["New", "Qualified", "Offer"].map((s, i) => (
+                  {["Nouveau", "Qualifié", "Offre"].map((s, i) => (
                     <div key={s} className="rounded-lg bg-white/5 p-3">
                       <div className="opacity-70">{s}</div>
                       <div className="mt-1 text-lg font-semibold">{[12, 7, 4][i]}</div>
@@ -88,8 +88,8 @@ function Landing() {
                 </div>
                 <div className="mt-4 space-y-2">
                   {[
-                    { name: "Marie Dubois", v: "€ 540k", t: "Villa" },
-                    { name: "Lucas Bernard", v: "€ 280k", t: "Appartement" },
+                    { name: "Marie Dubois", v: "540 k€", t: "Villa" },
+                    { name: "Lucas Bernard", v: "280 k€", t: "Appartement" },
                   ].map((c) => (
                     <div
                       key={c.name}
@@ -112,18 +112,18 @@ function Landing() {
           {[
             {
               icon: KanbanSquare,
-              title: "Multi-agent kanban",
-              desc: "Strict RLS: agents only see their own leads, admins see everything.",
+              title: "Kanban multi-agents",
+              desc: "Sécurité stricte : chaque agent ne voit que ses propres leads, les admins voient tout.",
             },
             {
               icon: ShieldCheck,
-              title: "Secure client portal",
-              desc: "Clients upload required docs and see live approval status.",
+              title: "Portail client sécurisé",
+              desc: "Les clients déposent leurs documents et suivent leur statut d'approbation en direct.",
             },
             {
               icon: FileText,
-              title: "Branded invoicing",
-              desc: "Proforma & final invoices generated as polished PDFs.",
+              title: "Facturation de marque",
+              desc: "Factures proforma et finales générées au format PDF soigné.",
             },
           ].map((f) => (
             <div key={f.title} className="rounded-2xl border border-border bg-card p-6">
@@ -137,7 +137,7 @@ function Landing() {
         </section>
       </main>
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        © 2026 Atrium Real Estate Group · Demo workspace
+        © 2026 Atrium Real Estate Group · Espace de démonstration
       </footer>
     </div>
   );

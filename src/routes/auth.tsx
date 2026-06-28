@@ -16,8 +16,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in · Atrium CRM" },
-      { name: "description", content: "Access your Atrium CRM workspace or client portal." },
+      { title: "Connexion · Atrium CRM" },
+      { name: "description", content: "Accédez à votre espace Atrium CRM ou à votre portail client." },
     ],
   }),
   component: AuthPage,
@@ -50,7 +50,7 @@ function AuthPage() {
           options: { data: { name }, emailRedirectTo: redirectTo },
         });
         if (error) throw error;
-        toast.success("Account created — signing you in…");
+        toast.success("Compte créé — connexion en cours…");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -74,11 +74,11 @@ function AuthPage() {
         </div>
         <div>
           <h2 className="text-4xl font-semibold leading-tight">
-            One platform.<br />Every signature.
+            Une plateforme.<br />Chaque signature.
           </h2>
           <p className="mt-3 max-w-md text-sm opacity-80">
-            Agents close deals from a polished kanban. Clients track their journey in a secure
-            portal. Invoices and signatures, automated.
+            Les agents closent leurs deals depuis un kanban élégant. Les clients suivent leur
+            parcours dans un portail sécurisé. Factures et signatures, automatisées.
           </p>
         </div>
         <p className="text-xs opacity-60">© 2026 Atrium Real Estate Group</p>
@@ -87,24 +87,24 @@ function AuthPage() {
         <Card className="w-full max-w-md border-border">
           <CardHeader>
             <CardTitle className="text-2xl">
-              {isSignup ? "Create your account" : "Welcome back"}
+              {isSignup ? "Créer votre compte" : "Bon retour"}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               {isSignup
-                ? "Sign up to access your client portal or your agent workspace."
-                : "Sign in to continue."}
+                ? "Inscrivez-vous pour accéder à votre portail client ou à votre espace agent."
+                : "Connectez-vous pour continuer."}
             </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={submit} className="space-y-4">
               {isSignup && (
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full name</Label>
+                  <Label htmlFor="name">Nom complet</Label>
                   <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
                   type="email"
@@ -115,7 +115,7 @@ function AuthPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <Input
                   id="password"
                   type="password"
@@ -127,14 +127,14 @@ function AuthPage() {
                 />
               </div>
               <Button type="submit" className="w-full bg-gradient-brand" disabled={loading}>
-                {loading ? "Please wait…" : isSignup ? "Create account" : "Sign in"}
+                {loading ? "Veuillez patienter…" : isSignup ? "Créer le compte" : "Se connecter"}
               </Button>
               <button
                 type="button"
                 onClick={() => setIsSignup((s) => !s)}
                 className="block w-full text-center text-sm text-muted-foreground hover:text-foreground"
               >
-                {isSignup ? "Already have an account? Sign in" : "New here? Create an account"}
+                {isSignup ? "Déjà un compte ? Se connecter" : "Nouveau ici ? Créer un compte"}
               </button>
             </form>
           </CardContent>
