@@ -152,7 +152,7 @@ function AdminPage() {
                                   await resend({
                                     data: {
                                       email: u.email!,
-                                      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined,
+                                      redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth?mode=invite` : undefined,
                                     },
                                   });
                                   toast.success(`Invitation renvoyée à ${u.email}`);
@@ -215,7 +215,7 @@ function CreateUserDialog({ onCreated }: { onCreated: () => Promise<void> }) {
           role: form.role,
           sendInvite: form.sendInvite,
           password: form.sendInvite ? undefined : form.password,
-          redirectTo: form.sendInvite && typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined,
+          redirectTo: form.sendInvite && typeof window !== "undefined" ? `${window.location.origin}/auth?mode=invite` : undefined,
         },
       })) as { invited: boolean };
       const okMsg = res.invited

@@ -682,7 +682,7 @@ function InviteClientButton({ lead }: { lead: Lead }) {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState<boolean>(!!lead.client_user_id);
 
-  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined;
+  const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/auth?mode=invite` : undefined;
 
   const doInvite = async () => {
     setBusy(true);
