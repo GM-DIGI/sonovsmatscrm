@@ -66,7 +66,7 @@ function PortalPage() {
   if (loading) {
     return (
       <AppShell role={role}>
-        <div className="grid h-64 place-items-center text-sm text-muted-foreground">Loading…</div>
+        <div className="grid h-64 place-items-center text-sm text-muted-foreground">Chargement…</div>
       </AppShell>
     );
   }
@@ -75,11 +75,11 @@ function PortalPage() {
     return (
       <AppShell role={role}>
         <div className="mx-auto max-w-2xl space-y-4 p-8">
-          <h1 className="text-2xl font-semibold">Welcome to Atrium</h1>
+          <h1 className="text-2xl font-semibold">Bienvenue chez Atrium</h1>
           <p className="text-muted-foreground">
-            We couldn't find an active file associated with your email address. Your real estate
-            agent will create your file shortly — once they do, your personalised journey will
-            appear here automatically.
+            Aucun dossier actif n'a été trouvé pour votre adresse e-mail. Votre agent immobilier
+            créera votre dossier sous peu — dès qu'il sera prêt, votre parcours personnalisé
+            apparaîtra automatiquement ici.
           </p>
           <Card>
             <CardContent className="flex items-center gap-3 p-4">
@@ -87,7 +87,7 @@ function PortalPage() {
                 <Building2 className="h-5 w-5 text-muted-foreground" />
               </div>
               <div className="text-sm text-muted-foreground">
-                Signed in as <b>{user?.email}</b>. Ask your agent to create a lead with this email.
+                Connecté en tant que <b>{user?.email}</b>. Demandez à votre agent de créer un lead avec cette adresse.
               </div>
             </CardContent>
           </Card>
