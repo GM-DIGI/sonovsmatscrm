@@ -306,7 +306,14 @@ export type Database = {
         | "Offer Made"
         | "Contract Pending"
         | "Signed & Closed"
-      property_type: "Appartement" | "Villa" | "Bureau"
+      property_type:
+        | "Appartement"
+        | "Villa"
+        | "Bureau"
+        | "Studio"
+        | "Terrain"
+        | "Maison"
+        | "Local commercial"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -453,7 +460,15 @@ export const Constants = {
         "Contract Pending",
         "Signed & Closed",
       ],
-      property_type: ["Appartement", "Villa", "Bureau"],
+      property_type: [
+        "Appartement",
+        "Villa",
+        "Bureau",
+        "Studio",
+        "Terrain",
+        "Maison",
+        "Local commercial",
+      ],
     },
   },
 } as const
