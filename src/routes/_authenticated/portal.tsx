@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/portal")({
-  head: () => ({ meta: [{ title: "My journey · Atrium" }] }),
+  head: () => ({ meta: [{ title: "Mon parcours · Atrium" }] }),
   component: PortalPage,
 });
 
