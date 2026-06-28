@@ -272,8 +272,20 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
       </div>
       {canEdit && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <InviteClientButton lead={lead} />
+          <div className="flex flex-wrap items-center gap-2">
+            <InviteClientButton lead={lead} />
+            <AiScoreButton lead={lead} />
+          </div>
           <Button onClick={save} className="bg-gradient-brand">Enregistrer</Button>
+        </div>
+      )}
+
+      {typeof lead.ai_score === "number" && lead.ai_score_reason && (
+        <div className="rounded-lg border border-border bg-card p-3 text-sm">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Sparkles className="h-3 w-3 text-primary" /> Analyse IA · score {lead.ai_score}/100
+          </div>
+          <p className="mt-1 text-muted-foreground">{lead.ai_score_reason}</p>
         </div>
       )}
 
