@@ -147,6 +147,7 @@ export type Database = {
         Row: {
           assigned_agent_id: string | null
           budget: number | null
+          campaign: string | null
           client_name: string
           client_user_id: string | null
           contract_path: string | null
@@ -160,12 +161,14 @@ export type Database = {
           phone: string | null
           property_type: Database["public"]["Enums"]["property_type"]
           signed_contract_path: string | null
+          source: string | null
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
         }
         Insert: {
           assigned_agent_id?: string | null
           budget?: number | null
+          campaign?: string | null
           client_name: string
           client_user_id?: string | null
           contract_path?: string | null
@@ -179,12 +182,14 @@ export type Database = {
           phone?: string | null
           property_type?: Database["public"]["Enums"]["property_type"]
           signed_contract_path?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
         }
         Update: {
           assigned_agent_id?: string | null
           budget?: number | null
+          campaign?: string | null
           client_name?: string
           client_user_id?: string | null
           contract_path?: string | null
@@ -198,6 +203,7 @@ export type Database = {
           phone?: string | null
           property_type?: Database["public"]["Enums"]["property_type"]
           signed_contract_path?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
         }
