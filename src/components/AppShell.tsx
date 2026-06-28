@@ -13,6 +13,7 @@ import {
   Wrench,
   Wallet,
   GitBranch,
+  Megaphone,
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,6 +117,13 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
             items: [
               { to: "/invoices", label: "Factures", icon: FileText },
               { to: "/documents", label: "Documents", icon: Files },
+            ],
+          },
+          {
+            label: "Acquisition",
+            icon: Megaphone,
+            items: [
+              { to: "/campaigns", label: "Formulaire campagne", icon: Megaphone },
             ],
           },
           {
