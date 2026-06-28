@@ -1,4 +1,4 @@
-import { STATUSES, statusIndex } from "@/lib/format";
+import { STATUSES, statusIndex, statusLabel } from "@/lib/format";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +48,7 @@ export function JourneyStepper({ status }: { status: string }) {
                   isCurrent ? "text-foreground" : "text-muted-foreground",
                 )}
               >
-                {s}
+                {statusLabel(s)}
               </div>
             </div>
           </li>
