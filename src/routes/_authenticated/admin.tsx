@@ -160,3 +160,80 @@ function AdminPage() {
     </AppShell>
   );
 }
+
+function CreateUserDialog({ onCreated }: { onCreated: () => Promise<void> }) {
+  const create = useServerFn(createStaffUser);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "agent" as "agent" | "admin" });
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await create({ data: form });
+      toast.success(`Compte ${form.role} créé pour ${form.email}`);
+      setForm({ name: "", email: "", password: "", role: "agent" });
+      setOpen(false);
+      await onCreated();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const genPassword = () => {
+    const s = Array.from(crypto.getRandomValues(new Uint8Array(9)))
+      .map((b) => "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 55])
+      .join("");
+    setForm((f) => ({ ...f, password: s }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <UserPlus className="mr-2 h-4 w-4" /> Nouveau compte
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Créer un compte agent ou admin</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid gap-2">
+            <Label htmlFor="cu-name">Nom complet</Label>
+            <Input id="cu-name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="cu-email">Email</Label>
+            <Input id="cu-email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="cu-password">Mot de passe temporaire</Label>
+            <div className="flex gap-2">
+              <Input id="cu-password" required minLength={8} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              <Button type="button" variant="outline" onClick={genPassword}>Générer</Button>
+            </div>
+            <p className="text-xs text-muted-foreground">L'utilisateur pourra se connecter immédiatement et le changer ensuite.</p>
+          </div>
+          <div className="grid gap-2">
+            <Label>Rôle</Label>
+            <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as "agent" | "admin" })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="agent">Agent</SelectItem>
+                <SelectItem value="admin">Administrateur</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
+            <Button type="submit" disabled={busy}>{busy ? "Création…" : "Créer le compte"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
