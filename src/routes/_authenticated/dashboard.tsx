@@ -27,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
+import { statusLabel } from "@/lib/format";
+
 function DashboardPage() {
   const { user, role, loading } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
