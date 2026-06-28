@@ -136,7 +136,7 @@ function DashboardPage() {
                   key={s}
                   className="rounded-xl border border-border bg-card p-3"
                 >
-                  <div className="text-xs text-muted-foreground">{s}</div>
+                  <div className="text-xs text-muted-foreground">{statusLabel(s)}</div>
                   <div className="mt-1 text-2xl font-semibold">{n}</div>
                 </div>
               );
