@@ -8,7 +8,7 @@ import { JourneyStepper } from "@/components/JourneyStepper";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { REQUIRED_DOCS, fmtDate, fmtMoney } from "@/lib/format";
+import { REQUIRED_DOCS, fmtDate, fmtMoney, statusLabel, docLabel, docStatusLabel, invoiceStatusLabel, invoiceTypeLabel } from "@/lib/format";
 import { BrandedInvoice } from "@/components/BrandedInvoice";
 import { downloadInvoicePdf } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
