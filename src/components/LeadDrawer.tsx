@@ -37,6 +37,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { inviteClientForLead, resendInvite } from "@/lib/admin.functions";
+import { scoreLead } from "@/lib/scoring.functions";
+import { LeadMessenger } from "@/components/LeadMessenger";
+import { useAuth } from "@/lib/auth";
+import { Sparkles } from "lucide-react";
 
 type Lead = Tables<"leads">;
 type Doc = Tables<"documents">;
@@ -97,6 +101,21 @@ export function LeadDrawer({
                 <span className="text-sm font-medium text-[color:var(--accent)]">
                   {fmtMoney(lead.budget)}
                 </span>
+                {typeof lead.ai_score === "number" && (
+                  <Badge
+                    variant="outline"
+                    title={lead.ai_score_reason ?? undefined}
+                    className={cn(
+                      lead.ai_score >= 70
+                        ? "border-[color:var(--success)]/30 bg-[color:var(--success)]/10 text-[color:var(--success)]"
+                        : lead.ai_score >= 40
+                        ? "border-amber-300 bg-amber-50 text-amber-800"
+                        : "border-slate-200 bg-slate-50 text-slate-600",
+                    )}
+                  >
+                    <Sparkles className="mr-1 h-3 w-3" /> Score IA {lead.ai_score}
+                  </Badge>
+                )}
                 {lead.locked && (
                   <Badge variant="secondary" className="bg-[color:var(--success)]/20 text-[color:var(--success)]">
                     <Lock className="mr-1 h-3 w-3" /> Verrouillé
@@ -108,14 +127,18 @@ export function LeadDrawer({
         </SheetHeader>
 
         <Tabs defaultValue="overview" className="p-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Aperçu & activité</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Aperçu</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="docs">Documents</TabsTrigger>
-            <TabsTrigger value="finances">Finances & contrat</TabsTrigger>
+            <TabsTrigger value="finances">Finances</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4">
             <OverviewTab lead={lead} acts={acts} canEdit={isStaff && !lead.locked} />
+          </TabsContent>
+          <TabsContent value="messages" className="mt-4">
+            <MessagesTab lead={lead} isStaff={isStaff} />
           </TabsContent>
           <TabsContent value="docs" className="mt-4">
             <DocsTab lead={lead} docs={docs} isStaff={isStaff} />
@@ -126,6 +149,18 @@ export function LeadDrawer({
         </Tabs>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function MessagesTab({ lead, isStaff }: { lead: Lead; isStaff: boolean }) {
+  const { user, role } = useAuth();
+  if (!user) return null;
+  const senderKind: "admin" | "agent" | "client" =
+    role === "admin" ? "admin" : isStaff ? "agent" : "client";
+  return (
+    <div className="h-[55vh]">
+      <LeadMessenger leadId={lead.id} selfId={user.id} selfKind={senderKind} />
+    </div>
   );
 }
 
@@ -237,8 +272,20 @@ function OverviewTab({ lead, acts, canEdit }: { lead: Lead; acts: Activity[]; ca
       </div>
       {canEdit && (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <InviteClientButton lead={lead} />
+          <div className="flex flex-wrap items-center gap-2">
+            <InviteClientButton lead={lead} />
+            <AiScoreButton lead={lead} />
+          </div>
           <Button onClick={save} className="bg-gradient-brand">Enregistrer</Button>
+        </div>
+      )}
+
+      {typeof lead.ai_score === "number" && lead.ai_score_reason && (
+        <div className="rounded-lg border border-border bg-card p-3 text-sm">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Sparkles className="h-3 w-3 text-primary" /> Analyse IA · score {lead.ai_score}/100
+          </div>
+          <p className="mt-1 text-muted-foreground">{lead.ai_score_reason}</p>
         </div>
       )}
 
@@ -804,6 +851,28 @@ function InviteClientButton({ lead }: { lead: Lead }) {
     <Button type="button" variant="outline" size="sm" onClick={doInvite} disabled={busy || !lead.email}>
       {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Mail className="mr-1.5 h-4 w-4" />}
       {busy ? "Envoi…" : "Inviter le client"}
+    </Button>
+  );
+}
+
+function AiScoreButton({ lead }: { lead: Lead }) {
+  const score = useServerFn(scoreLead);
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    setBusy(true);
+    try {
+      const res = await score({ data: { leadId: lead.id } });
+      toast.success(`Score IA : ${res.score}/100`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={run} disabled={busy}>
+      {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1.5 h-4 w-4" />}
+      {busy ? "Analyse…" : (typeof lead.ai_score === "number" ? "Re-scorer" : "Scorer par IA")}
     </Button>
   );
 }

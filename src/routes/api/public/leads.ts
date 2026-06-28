@@ -128,6 +128,15 @@ export const Route = createFileRoute("/api/public/leads")({
           });
         }
 
+        // Auto-scoring IA (best-effort, ne bloque pas la réponse)
+        try {
+          const { scoreLeadServer } = await import("@/lib/scoring.functions");
+          await scoreLeadServer(lead.id);
+        } catch (e) {
+          console.warn("[public/leads] scoring IA échoué:", (e as Error).message);
+        }
+
+
         return new Response(JSON.stringify({ ok: true, id: lead.id }), {
           status: 200,
           headers: { "Content-Type": "application/json", ...cors },

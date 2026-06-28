@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DndContext, DragOverlay, type DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { motion } from "framer-motion";
-import { Building2, Lock, FileCheck, AlertCircle } from "lucide-react";
+import { Building2, Lock, FileCheck, AlertCircle, Sparkles } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { STATUSES, statusIndex, fmtMoney, type LeadStatus, REQUIRED_DOCS, statusLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -176,11 +176,28 @@ function LeadCard({
             {lead.property_type}
           </div>
         </div>
-        {lead.locked && (
-          <span title="Verrouillé" className="rounded-full bg-[color:var(--success)]/15 p-1 text-[color:var(--success)]">
-            <Lock className="h-3 w-3" />
-          </span>
-        )}
+        <div className="flex items-center gap-1">
+          {typeof lead.ai_score === "number" && (
+            <span
+              title={lead.ai_score_reason ?? "Score IA"}
+              className={cn(
+                "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                lead.ai_score >= 70
+                  ? "bg-[color:var(--success)]/15 text-[color:var(--success)]"
+                  : lead.ai_score >= 40
+                  ? "bg-amber-100 text-amber-800"
+                  : "bg-slate-100 text-slate-600",
+              )}
+            >
+              <Sparkles className="h-2.5 w-2.5" /> {lead.ai_score}
+            </span>
+          )}
+          {lead.locked && (
+            <span title="Verrouillé" className="rounded-full bg-[color:var(--success)]/15 p-1 text-[color:var(--success)]">
+              <Lock className="h-3 w-3" />
+            </span>
+          )}
+        </div>
       </div>
       <div className="mt-3 flex items-center justify-between">
         <span className="text-sm font-semibold text-[color:var(--accent)]">
