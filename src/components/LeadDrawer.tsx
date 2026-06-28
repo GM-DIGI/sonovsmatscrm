@@ -499,14 +499,26 @@ function FinancesTab({
   const sendToYousign = async () => {
     if (!canYousign) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("leads")
-      .update({ status: "Contract Pending" })
-      .eq("id", lead.id);
-    if (!error) {
+    try {
+      const path = await generateAndUploadContractPdf({
+        id: lead.id,
+        client_name: lead.client_name,
+        email: lead.email,
+        property_type: lead.property_type,
+        budget: lead.budget,
+      });
+      const { error } = await supabase
+        .from("leads")
+        .update({
+          status: "Contract Pending",
+          contract_path: path,
+          contract_sent_at: new Date().toISOString(),
+        } as never)
+        .eq("id", lead.id);
+      if (error) throw error;
       await supabase.from("lead_activities").insert({
         lead_id: lead.id,
-        message: "Contrat envoyé à Yousign — en attente de signature.",
+        message: "Contrat généré et envoyé au client pour signature.",
         kind: "system",
       });
       if (lead.client_user_id) {
@@ -514,13 +526,17 @@ function FinancesTab({
           user_id: lead.client_user_id,
           lead_id: lead.id,
           title: "Contrat prêt à signer",
-          message: "Merci de relire et signer les documents sur Yousign.",
+          message: "Téléchargez votre contrat, signez-le puis renvoyez-le depuis votre espace.",
         });
       }
-      toast.success("Envoyé à Yousign — en attente de signature");
-    } else toast.error(error.message);
-    setBusy(false);
+      toast.success("Contrat envoyé — en attente de signature");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
+
 
   const simulate = async () => {
     setBusy(true);
