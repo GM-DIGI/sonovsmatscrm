@@ -186,6 +186,7 @@ function CreateUserDialog({ onCreated }: { onCreated: () => Promise<void> }) {
           role: form.role,
           sendInvite: form.sendInvite,
           password: form.sendInvite ? undefined : form.password,
+          redirectTo: form.sendInvite && typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined,
         },
       })) as { invited: boolean };
       const okMsg = res.invited
