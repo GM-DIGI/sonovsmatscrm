@@ -36,7 +36,7 @@ import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
-import { inviteClientForLead } from "@/lib/admin.functions";
+import { inviteClientForLead, resendInvite } from "@/lib/admin.functions";
 
 type Lead = Tables<"leads">;
 type Doc = Tables<"documents">;
