@@ -11,15 +11,25 @@ const PROPERTY_TYPES = [
   "Terrain",
 ] as const;
 
+const optStr = (max: number) =>
+  z.preprocess(
+    (v) => (v === null || v === undefined || v === "" ? undefined : v),
+    z.string().trim().max(max).optional(),
+  );
+
 const schema = z.object({
   client_name: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(200),
-  phone: z.string().trim().max(40).optional().or(z.literal("")),
-  budget: z.union([z.number(), z.string()]).optional().nullable(),
+  phone: optStr(40),
+  budget: z
+    .preprocess(
+      (v) => (v === null || v === undefined || v === "" ? undefined : v),
+      z.union([z.number(), z.string()]).optional(),
+    ),
   property_type: z.enum(PROPERTY_TYPES).default("Appartement"),
-  campaign: z.string().trim().max(120).optional().or(z.literal("")),
-  source: z.string().trim().max(120).optional().or(z.literal("")),
-  notes: z.string().trim().max(2000).optional().or(z.literal("")),
+  campaign: optStr(120),
+  source: optStr(120),
+  notes: optStr(2000),
 });
 
 const cors = {
