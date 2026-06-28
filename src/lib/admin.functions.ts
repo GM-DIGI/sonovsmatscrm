@@ -102,6 +102,7 @@ export const createStaffUser = createServerFn({ method: "POST" })
         password: z.string().min(8).max(72).optional(),
         role: z.enum(["admin", "agent"]),
         sendInvite: z.boolean().optional(),
+        redirectTo: z.string().url().optional(),
       })
       .parse(input),
   )
@@ -119,7 +120,7 @@ export const createStaffUser = createServerFn({ method: "POST" })
     if (data.sendInvite) {
       const { data: inv, error: invErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(
         data.email,
-        { data: { name: data.name } },
+        { data: { name: data.name }, redirectTo: data.redirectTo },
       );
       if (invErr || !inv.user) throw new Error(invErr?.message ?? "Envoi de l'invitation impossible");
       userId = inv.user.id;
