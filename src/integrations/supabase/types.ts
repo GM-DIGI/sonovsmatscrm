@@ -149,6 +149,9 @@ export type Database = {
           budget: number | null
           client_name: string
           client_user_id: string | null
+          contract_path: string | null
+          contract_sent_at: string | null
+          contract_signed_at: string | null
           created_at: string
           email: string
           id: string
@@ -156,6 +159,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           property_type: Database["public"]["Enums"]["property_type"]
+          signed_contract_path: string | null
           status: Database["public"]["Enums"]["lead_status"]
           updated_at: string
         }
@@ -164,6 +168,9 @@ export type Database = {
           budget?: number | null
           client_name: string
           client_user_id?: string | null
+          contract_path?: string | null
+          contract_sent_at?: string | null
+          contract_signed_at?: string | null
           created_at?: string
           email: string
           id?: string
@@ -171,6 +178,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           property_type?: Database["public"]["Enums"]["property_type"]
+          signed_contract_path?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
         }
@@ -179,6 +187,9 @@ export type Database = {
           budget?: number | null
           client_name?: string
           client_user_id?: string | null
+          contract_path?: string | null
+          contract_sent_at?: string | null
+          contract_signed_at?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -186,6 +197,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           property_type?: Database["public"]["Enums"]["property_type"]
+          signed_contract_path?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           updated_at?: string
         }
