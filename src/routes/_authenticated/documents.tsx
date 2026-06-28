@@ -7,8 +7,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { docLabel, docStatusLabel, fmtDate } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/documents")({
   head: () => ({ meta: [{ title: "Documents · Atrium CRM" }] }),
@@ -43,9 +42,9 @@ function DocumentsPage() {
   }, [loading]);
 
   const statusTone = (s: string) =>
-    s === "approved"
+    s === "Approved"
       ? "bg-[color:var(--success)]/15 text-[color:var(--success)] border-[color:var(--success)]/30"
-      : s === "rejected"
+      : s === "Rejected"
         ? "bg-destructive/15 text-destructive border-destructive/30"
         : "bg-muted text-muted-foreground border-border";
 
