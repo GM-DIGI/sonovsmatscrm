@@ -4,7 +4,7 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { motion } from "framer-motion";
 import { Building2, Lock, FileCheck, AlertCircle } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { STATUSES, statusIndex, fmtMoney, type LeadStatus, REQUIRED_DOCS } from "@/lib/format";
+import { STATUSES, statusIndex, fmtMoney, type LeadStatus, REQUIRED_DOCS, statusLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -45,7 +45,7 @@ export function KanbanBoard({ leads, docCounts, onOpen, onStatusChange }: Props)
     const lead = leads.find((l) => l.id === id);
     if (!lead || lead.status === newStatus) return;
     if (lead.locked) {
-      toast.error("This lead is locked — no further changes allowed.");
+      toast.error("Ce lead est verrouillé — aucune modification possible.");
       return;
     }
     await onStatusChange(lead, newStatus);
@@ -111,7 +111,7 @@ function Column({
                 : "bg-[color:var(--primary)]",
             )}
           />
-          <h3 className="text-sm font-semibold tracking-tight">{status}</h3>
+          <h3 className="text-sm font-semibold tracking-tight">{statusLabel(status)}</h3>
         </div>
         <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {leads.length}
@@ -120,7 +120,7 @@ function Column({
       <div className="flex flex-1 flex-col gap-2 p-3">
         {leads.length === 0 && (
           <div className="grid h-20 place-items-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
-            Drop leads here
+            Déposez les leads ici
           </div>
         )}
         {leads.map((l) => (
@@ -177,7 +177,7 @@ function LeadCard({
           </div>
         </div>
         {lead.locked && (
-          <span title="Locked" className="rounded-full bg-[color:var(--success)]/15 p-1 text-[color:var(--success)]">
+          <span title="Verrouillé" className="rounded-full bg-[color:var(--success)]/15 p-1 text-[color:var(--success)]">
             <Lock className="h-3 w-3" />
           </span>
         )}
@@ -195,7 +195,7 @@ function LeadCard({
           )}
         >
           {reqMet ? <FileCheck className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-          {counts.approved}/{counts.required} docs
+          {counts.approved}/{counts.required} docs OK
         </span>
       </div>
       <div className="mt-3 h-1 w-full rounded-full bg-muted">
