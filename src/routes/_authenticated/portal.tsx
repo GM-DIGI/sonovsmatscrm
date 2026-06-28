@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { REQUIRED_DOCS, fmtDate, fmtMoney, statusLabel, docLabel, docStatusLabel, invoiceStatusLabel, invoiceTypeLabel } from "@/lib/format";
 import { BrandedInvoice } from "@/components/BrandedInvoice";
-import { downloadInvoicePdf } from "@/lib/pdf";
+import { downloadInvoicePdf, downloadStoragePdf } from "@/lib/pdf";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload, Lock, FileText, Check, AlertCircle, Building2 } from "lucide-react";
 import { toast } from "sonner";
@@ -148,6 +148,12 @@ function PortalPage() {
             ))}
           </CardContent>
         </Card>
+
+        {((lead as any).contract_path || (lead as any).signed_contract_path) && (
+          <ContractCard lead={lead} onChange={reload} />
+        )}
+
+
 
         <Card>
           <CardHeader>
@@ -304,3 +310,136 @@ function DocSlot({
     </div>
   );
 }
+
+function ContractCard({ lead, onChange }: { lead: Tables<"leads">; onChange: () => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const contractPath = (lead as any).contract_path as string | null;
+  const signedPath = (lead as any).signed_contract_path as string | null;
+  const sentAt = (lead as any).contract_sent_at as string | null;
+  const signedAt = (lead as any).contract_signed_at as string | null;
+
+  const onFile = async (file: File | undefined) => {
+    if (!file || lead.locked) return;
+    setBusy(true);
+    const path = `${lead.id}/contract-signed-${Date.now()}-${file.name}`;
+    const up = await supabase.storage
+      .from("lead-documents")
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (up.error) {
+      setBusy(false);
+      return toast.error(up.error.message);
+    }
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        signed_contract_path: path,
+        contract_signed_at: new Date().toISOString(),
+      } as never)
+      .eq("id", lead.id);
+    if (error) {
+      setBusy(false);
+      return toast.error(error.message);
+    }
+    if (lead.assigned_agent_id) {
+      await supabase.from("notifications").insert({
+        user_id: lead.assigned_agent_id,
+        lead_id: lead.id,
+        title: "Contrat signé reçu",
+        message: `${lead.client_name} a renvoyé le contrat signé.`,
+      });
+    }
+    await supabase.from("lead_activities").insert({
+      lead_id: lead.id,
+      kind: "system",
+      message: "Le client a renvoyé le contrat signé.",
+    });
+    setBusy(false);
+    toast.success("Contrat signé envoyé à votre agent");
+    onChange();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Votre contrat</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {contractPath ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <div className="font-medium">Contrat de transaction immobilière</div>
+                <div className="text-xs text-muted-foreground">
+                  {sentAt ? `Émis le ${fmtDate(sentAt)}` : "Prêt à signer"}
+                </div>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => downloadStoragePdf("lead-documents", contractPath, "contrat-atrium.pdf")}
+            >
+              <FileText className="mr-1 h-3.5 w-3.5" /> Télécharger
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">Votre contrat sera disponible ici dès qu'il sera émis.</p>
+        )}
+
+        <div className="rounded-lg border border-dashed border-border bg-card p-4">
+          {signedPath ? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-[color:var(--success)]">
+                <Check className="h-4 w-4" />
+                <div>
+                  <div className="font-medium">Contrat signé envoyé</div>
+                  <div className="text-xs opacity-80">
+                    {signedAt ? `Reçu le ${fmtDate(signedAt)}` : ""}
+                  </div>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => downloadStoragePdf("lead-documents", signedPath, "contrat-signe.pdf")}
+              >
+                Voir
+              </Button>
+              {!lead.locked && (
+                <Button size="sm" variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
+                  <Upload className="mr-1 h-3.5 w-3.5" /> Remplacer
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-sm">
+                <div className="font-medium">Renvoyez votre contrat signé</div>
+                <div className="text-xs text-muted-foreground">
+                  Téléchargez le contrat, signez-le (manuscrit ou électronique), puis téléversez le PDF ici.
+                </div>
+              </div>
+              <Button
+                size="sm"
+                disabled={busy || !contractPath || lead.locked}
+                onClick={() => inputRef.current?.click()}
+                className="bg-gradient-brand"
+              >
+                <Upload className="mr-1 h-3.5 w-3.5" /> Téléverser le signé
+              </Button>
+            </div>
+          )}
+          <input
+            ref={inputRef}
+            type="file"
+            hidden
+            accept="application/pdf,image/*"
+            onChange={(e) => onFile(e.target.files?.[0])}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+

@@ -29,7 +29,7 @@ import {
   invoiceTypeLabel,
 } from "@/lib/format";
 import { BrandedInvoice } from "./BrandedInvoice";
-import { downloadInvoicePdf, generateAndUploadInvoicePdf } from "@/lib/pdf";
+import { downloadInvoicePdf, downloadStoragePdf, generateAndUploadContractPdf, generateAndUploadInvoicePdf } from "@/lib/pdf";
 import { toast } from "sonner";
 import { Check, X, Send, FileText, MessageCircle, Lock, PartyPopper, ExternalLink, Loader2, Mail } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -499,14 +499,26 @@ function FinancesTab({
   const sendToYousign = async () => {
     if (!canYousign) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("leads")
-      .update({ status: "Contract Pending" })
-      .eq("id", lead.id);
-    if (!error) {
+    try {
+      const path = await generateAndUploadContractPdf({
+        id: lead.id,
+        client_name: lead.client_name,
+        email: lead.email,
+        property_type: lead.property_type,
+        budget: lead.budget,
+      });
+      const { error } = await supabase
+        .from("leads")
+        .update({
+          status: "Contract Pending",
+          contract_path: path,
+          contract_sent_at: new Date().toISOString(),
+        } as never)
+        .eq("id", lead.id);
+      if (error) throw error;
       await supabase.from("lead_activities").insert({
         lead_id: lead.id,
-        message: "Contrat envoyé à Yousign — en attente de signature.",
+        message: "Contrat généré et envoyé au client pour signature.",
         kind: "system",
       });
       if (lead.client_user_id) {
@@ -514,13 +526,17 @@ function FinancesTab({
           user_id: lead.client_user_id,
           lead_id: lead.id,
           title: "Contrat prêt à signer",
-          message: "Merci de relire et signer les documents sur Yousign.",
+          message: "Téléchargez votre contrat, signez-le puis renvoyez-le depuis votre espace.",
         });
       }
-      toast.success("Envoyé à Yousign — en attente de signature");
-    } else toast.error(error.message);
-    setBusy(false);
+      toast.success("Contrat envoyé — en attente de signature");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
+
 
   const simulate = async () => {
     setBusy(true);
@@ -587,6 +603,66 @@ function FinancesTab({
           )}
         </div>
       )}
+
+      {((lead as any).contract_path || (lead as any).signed_contract_path) && (
+        <div className="rounded-lg border border-border bg-card p-4">
+          <h4 className="text-sm font-semibold">Contrat</h4>
+          <div className="mt-3 space-y-2 text-sm">
+            {(lead as any).contract_path && (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span>Contrat envoyé au client</span>
+                  {(lead as any).contract_sent_at && (
+                    <span className="text-xs text-muted-foreground">
+                      · {fmtDate((lead as any).contract_sent_at)}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    downloadStoragePdf("lead-documents", (lead as any).contract_path, `contrat-${lead.client_name}.pdf`)
+                  }
+                >
+                  Télécharger
+                </Button>
+              </div>
+            )}
+            {(lead as any).signed_contract_path ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-[color:var(--success)]/10 p-2">
+                <div className="flex items-center gap-2 text-[color:var(--success)]">
+                  <Check className="h-4 w-4" />
+                  <span className="font-medium">Contrat signé reçu</span>
+                  {(lead as any).contract_signed_at && (
+                    <span className="text-xs opacity-80">
+                      · {fmtDate((lead as any).contract_signed_at)}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    downloadStoragePdf(
+                      "lead-documents",
+                      (lead as any).signed_contract_path,
+                      `contrat-signe-${lead.client_name}.pdf`,
+                    )
+                  }
+                >
+                  Télécharger
+                </Button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">En attente du contrat signé du client.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+
 
       <div>
         <h4 className="mb-3 text-sm font-semibold">Factures</h4>
