@@ -854,3 +854,25 @@ function InviteClientButton({ lead }: { lead: Lead }) {
     </Button>
   );
 }
+
+function AiScoreButton({ lead }: { lead: Lead }) {
+  const score = useServerFn(scoreLead);
+  const [busy, setBusy] = useState(false);
+  const run = async () => {
+    setBusy(true);
+    try {
+      const res = await score({ data: { leadId: lead.id } });
+      toast.success(`Score IA : ${res.score}/100`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={run} disabled={busy}>
+      {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1.5 h-4 w-4" />}
+      {busy ? "Analyse…" : (typeof lead.ai_score === "number" ? "Re-scorer" : "Scorer par IA")}
+    </Button>
+  );
+}
