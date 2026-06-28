@@ -29,7 +29,7 @@ function DocumentsPage() {
       const { data } = await supabase
         .from("documents")
         .select("*, leads(client_name,email)")
-        .order("created_at", { ascending: false });
+        .order("uploaded_at", { ascending: false });
       setRows((data as Row[]) ?? []);
     };
     load();
@@ -79,7 +79,8 @@ function DocumentsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium">{docLabel(d.document_type)}</div>
                       <div className="truncate text-xs text-muted-foreground">
-                        {d.leads?.client_name ?? "—"} · {fmtDate(d.created_at)}
+                        {d.leads?.client_name ?? "—"} · {fmtDate(d.uploaded_at)}
+                        {d.file_name ? ` · ${d.file_name}` : ""}
                       </div>
                       {d.rejection_reason && (
                         <div className="mt-1 text-xs text-destructive">Motif : {d.rejection_reason}</div>
@@ -88,13 +89,6 @@ function DocumentsPage() {
                     <Badge variant="outline" className={statusTone(d.status)}>
                       {docStatusLabel(d.status)}
                     </Badge>
-                    {d.file_url && (
-                      <Button asChild variant="ghost" size="sm">
-                        <a href={d.file_url} target="_blank" rel="noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
                   </li>
                 ))}
               </ul>
