@@ -86,7 +86,10 @@ function DashboardPage() {
 
   const updateStatus = async (lead: Lead, status: LeadStatus) => {
     const { error } = await supabase.from("leads").update({ status }).eq("id", lead.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await supabase.from("lead_activities").insert({
       lead_id: lead.id,
       kind: "status",
