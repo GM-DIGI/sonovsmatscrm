@@ -675,3 +675,37 @@ function FinancesTab({
     </div>
   );
 }
+
+function InviteClientButton({ lead }: { lead: Lead }) {
+  const invite = useServerFn(inviteClientForLead);
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState<boolean>(!!lead.client_user_id);
+
+  if (sent) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md bg-[color:var(--success)]/15 px-2.5 py-1.5 text-xs font-medium text-[color:var(--success)]">
+        <Check className="h-3.5 w-3.5" /> Invitation envoyée
+      </span>
+    );
+  }
+
+  const onClick = async () => {
+    setBusy(true);
+    try {
+      await invite({ data: { leadId: lead.id } });
+      toast.success(`Invitation envoyée à ${lead.email}`);
+      setSent(true);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Button type="button" variant="outline" size="sm" onClick={onClick} disabled={busy || !lead.email}>
+      {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Mail className="mr-1.5 h-4 w-4" />}
+      {busy ? "Envoi…" : "Inviter le client"}
+    </Button>
+  );
+}
