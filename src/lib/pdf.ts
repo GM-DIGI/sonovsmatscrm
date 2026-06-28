@@ -188,3 +188,103 @@ export async function generateAndUploadInvoicePdf(invoice: InvoiceRow, lead: Lea
   await supabase.from("invoices").update({ pdf_path: path }).eq("id", invoice.id);
   return path;
 }
+
+// ---------- Contract ----------
+type ContractLead = {
+  id: string;
+  client_name: string;
+  email: string;
+  property_type: string;
+  budget?: number | null;
+};
+
+export function buildContractDoc(lead: ContractLead) {
+  const slate = "#2c3a6b";
+  const indigo = "#4338ca";
+  const today = new Date().toLocaleDateString("fr-FR");
+  return {
+    pageMargins: [50, 60, 50, 70] as [number, number, number, number],
+    content: [
+      { text: "ATRIUM", style: "brand", color: slate },
+      { text: "Real Estate Group", color: indigo, fontSize: 9, margin: [0, 2, 0, 0] },
+      { canvas: [{ type: "line", x1: 0, y1: 8, x2: 495, y2: 8, lineWidth: 2, lineColor: slate }] },
+      { text: "CONTRAT DE TRANSACTION IMMOBILIÈRE", style: "title", color: slate, margin: [0, 24, 0, 16] },
+      {
+        text: [
+          { text: "Entre les soussignés :\n\n", bold: true },
+          "Atrium Real Estate Group, ci-après dénommée « l'Agence »,\net\n",
+          { text: `${lead.client_name}`, bold: true },
+          ` (${lead.email}), ci-après dénommé(e) « le Client ».\n\n`,
+        ],
+      },
+      { text: "Article 1 — Objet", style: "h2", color: indigo, margin: [0, 14, 0, 6] },
+      {
+        text: `Le présent contrat a pour objet l'accompagnement du Client dans la transaction d'un bien de type ${lead.property_type}${
+          lead.budget ? ` pour un budget de référence de ${euro(lead.budget)}` : ""
+        }.`,
+      },
+      { text: "Article 2 — Obligations de l'Agence", style: "h2", color: indigo, margin: [0, 14, 0, 6] },
+      { text: "L'Agence s'engage à conseiller le Client, vérifier la conformité des documents et coordonner la signature finale du compromis." },
+      { text: "Article 3 — Obligations du Client", style: "h2", color: indigo, margin: [0, 14, 0, 6] },
+      { text: "Le Client s'engage à fournir les documents requis et à régler les honoraires figurant sur la facture finale émise par l'Agence." },
+      { text: "Article 4 — Signature", style: "h2", color: indigo, margin: [0, 14, 0, 6] },
+      { text: `Le Client confirme accepter les termes du présent contrat en y apposant sa signature manuscrite ou électronique. Daté du ${today}.` },
+      {
+        margin: [0, 40, 0, 0],
+        columns: [
+          {
+            stack: [
+              { text: "L'Agence", bold: true, color: slate },
+              { canvas: [{ type: "line", x1: 0, y1: 50, x2: 180, y2: 50, lineWidth: 1, lineColor: "#999" }] },
+              { text: "Atrium Real Estate", fontSize: 9, color: "#666", margin: [0, 4, 0, 0] },
+            ],
+          },
+          {
+            stack: [
+              { text: "Le Client", bold: true, color: slate },
+              { canvas: [{ type: "line", x1: 0, y1: 50, x2: 180, y2: 50, lineWidth: 1, lineColor: "#999" }] },
+              { text: lead.client_name, fontSize: 9, color: "#666", margin: [0, 4, 0, 0] },
+            ],
+          },
+        ],
+      },
+      {
+        absolutePosition: { x: 50, y: 780 },
+        text: "Atrium Real Estate Group · contact@atrium.example · VAT EU-0000-0000",
+        color: "#999",
+        fontSize: 8,
+      },
+    ],
+    styles: {
+      brand: { fontSize: 22, bold: true, characterSpacing: 4 },
+      title: { fontSize: 16, bold: true, alignment: "center" },
+      h2: { fontSize: 11, bold: true },
+    },
+    defaultStyle: { fontSize: 10, color: "#1f2937", lineHeight: 1.4 },
+  };
+}
+
+export async function generateAndUploadContractPdf(lead: ContractLead) {
+  const pdfMake = await getPdfMake();
+  const blob: Blob = await new Promise((resolve) =>
+    pdfMake.createPdf(buildContractDoc(lead)).getBlob((b: Blob) => resolve(b)),
+  );
+  const path = `${lead.id}/contract-${Date.now()}.pdf`;
+  const { error } = await supabase.storage
+    .from("lead-documents")
+    .upload(path, blob, { contentType: "application/pdf", upsert: true });
+  if (error) throw error;
+  return path;
+}
+
+export async function downloadStoragePdf(bucket: "lead-documents" | "invoices", path: string, filename: string) {
+  const { data, error } = await supabase.storage.from(bucket).download(path);
+  if (error) throw error;
+  const url = URL.createObjectURL(data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
