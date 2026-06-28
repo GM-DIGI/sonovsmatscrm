@@ -109,8 +109,8 @@ function DashboardPage() {
             <h1 className="text-2xl font-semibold tracking-tight">Pipeline</h1>
             <p className="text-sm text-muted-foreground">
               {role === "admin"
-                ? "All leads across every agent."
-                : "Your active leads, grouped by stage."}
+                ? "Tous les leads, tous agents confondus."
+                : "Vos leads actifs, regroupés par étape."}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -119,7 +119,7 @@ function DashboardPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search leads…"
+                placeholder="Rechercher un lead…"
                 className="w-64 pl-8"
               />
             </div>
