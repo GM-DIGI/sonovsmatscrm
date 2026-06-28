@@ -193,7 +193,7 @@ export const inviteClientForLead = createServerFn({ method: "POST" })
       lead_id: lead.id,
       kind: "system",
       message: `Invitation client envoyée à ${lead.email}`,
-      actor_id: context.userId,
+      author_id: context.userId,
     });
 
     return { ok: true, email: lead.email };
