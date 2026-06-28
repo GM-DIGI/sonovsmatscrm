@@ -14,6 +14,8 @@ import {
   Wallet,
   GitBranch,
   Megaphone,
+  Bot,
+  MessageCircle,
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,6 +92,7 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
             icon: Home,
             items: [
               { to: "/portal", label: "Mon parcours", icon: Home },
+              { to: "/messages", label: "Messages", icon: MessageCircle },
               { to: "/documents", label: "Mes documents", icon: Files },
               { to: "/invoices", label: "Mes factures", icon: Wallet },
             ],
@@ -124,6 +127,13 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
             icon: Megaphone,
             items: [
               { to: "/campaigns", label: "Formulaire campagne", icon: Megaphone },
+            ],
+          },
+          {
+            label: "Assistant IA",
+            icon: Bot,
+            items: [
+              { to: "/copilot", label: "Copilote IA", icon: Bot },
             ],
           },
           {
