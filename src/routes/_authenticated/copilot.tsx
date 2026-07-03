@@ -90,7 +90,7 @@ function SendActions({ text }: { text: string }) {
   );
 
   return (
-    <div className="mt-2 flex gap-2">
+    <div className="mt-2 flex flex-wrap gap-2">
       <Popover open={open === "wa"} onOpenChange={(o) => { setOpen(o ? "wa" : null); if (o) load(); }}>
         <PopoverTrigger asChild>
           <Button size="sm" variant="outline" className="h-7 text-xs">
@@ -107,7 +107,110 @@ function SendActions({ text }: { text: string }) {
         </PopoverTrigger>
         <PopoverContent className="w-72 p-0" align="start">{renderPicker("mail")}</PopoverContent>
       </Popover>
+      <ScheduleAction text={text} onLoadLeads={load} leads={leads} />
     </div>
+  );
+}
+
+function ScheduleAction({
+  text,
+  leads,
+  onLoadLeads,
+}: {
+  text: string;
+  leads: LeadContact[];
+  onLoadLeads: () => Promise<void> | void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [leadId, setLeadId] = useState<string>("");
+  const [channel, setChannel] = useState<"whatsapp" | "email">("whatsapp");
+  const defaultWhen = () => {
+    const d = new Date(Date.now() + 60 * 60 * 1000);
+    d.setSeconds(0, 0);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const [when, setWhen] = useState<string>(defaultWhen());
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    if (!leadId) return toast.error("Choisissez un lead");
+    const iso = new Date(when).toISOString();
+    if (Number.isNaN(new Date(when).getTime())) return toast.error("Date invalide");
+    setSaving(true);
+    const { data: userRes } = await supabase.auth.getUser();
+    if (!userRes.user) { setSaving(false); return toast.error("Session expirée"); }
+    const { error } = await supabase.from("scheduled_reminders").insert({
+      user_id: userRes.user.id,
+      lead_id: leadId,
+      channel,
+      body: stripMarkdown(text),
+      send_at: iso,
+    });
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Relance planifiée");
+    setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) onLoadLeads(); }}>
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="outline" className="h-7 text-xs">
+          <Clock className="mr-1 h-3.5 w-3.5" /> Planifier
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 space-y-3" align="start">
+        <div className="space-y-1.5">
+          <Label className="text-xs">Lead</Label>
+          <select
+            className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+            value={leadId}
+            onChange={(e) => setLeadId(e.target.value)}
+          >
+            <option value="">— Choisir —</option>
+            {leads.map((l) => (
+              <option key={l.id} value={l.id}>{l.client_name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Canal</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={channel === "whatsapp" ? "default" : "outline"}
+              className="h-8 flex-1 text-xs"
+              onClick={() => setChannel("whatsapp")}
+            >
+              <MessageCircle className="mr-1 h-3.5 w-3.5" /> WhatsApp
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={channel === "email" ? "default" : "outline"}
+              className="h-8 flex-1 text-xs"
+              onClick={() => setChannel("email")}
+            >
+              <Mail className="mr-1 h-3.5 w-3.5" /> Email
+            </Button>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs">Date & heure</Label>
+          <Input
+            type="datetime-local"
+            value={when}
+            onChange={(e) => setWhen(e.target.value)}
+            className="h-9"
+          />
+        </div>
+        <Button onClick={submit} disabled={saving} className="w-full" size="sm">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Planifier la relance"}
+        </Button>
+      </PopoverContent>
+    </Popover>
   );
 }
 
