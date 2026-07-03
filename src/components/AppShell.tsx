@@ -135,6 +135,7 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
             icon: Bot,
             items: [
               { to: "/copilot", label: "Copilote IA", icon: Bot },
+              { to: "/reminders", label: "Historique relances", icon: History },
             ],
           },
           {
