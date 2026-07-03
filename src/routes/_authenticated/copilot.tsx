@@ -10,8 +10,104 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Loader2, Plus, Sparkles, Trash2, Send, Bot } from "lucide-react";
+import { Loader2, Plus, Sparkles, Trash2, Send, Bot, Mail, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+
+type LeadContact = { id: string; client_name: string; email: string | null; phone: string | null };
+
+function stripMarkdown(s: string) {
+  return s
+    .replace(/```[\s\S]*?```/g, (b) => b.replace(/```/g, ""))
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/^#+\s+/gm, "")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)")
+    .trim();
+}
+
+function SendActions({ text }: { text: string }) {
+  const [leads, setLeads] = useState<LeadContact[]>([]);
+  const [open, setOpen] = useState<null | "wa" | "mail">(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const load = async () => {
+    if (loaded) return;
+    const { data } = await supabase
+      .from("leads")
+      .select("id,client_name,email,phone")
+      .order("updated_at", { ascending: false })
+      .limit(100);
+    setLeads(data ?? []);
+    setLoaded(true);
+  };
+
+  const send = (lead: LeadContact, kind: "wa" | "mail") => {
+    const body = stripMarkdown(text);
+    if (kind === "wa") {
+      if (!lead.phone) {
+        toast.error("Ce lead n'a pas de numéro");
+        return;
+      }
+      const num = lead.phone.replace(/[^\d]/g, "");
+      window.open(`https://wa.me/${num}?text=${encodeURIComponent(body)}`, "_blank");
+    } else {
+      if (!lead.email) {
+        toast.error("Ce lead n'a pas d'email");
+        return;
+      }
+      const subject = encodeURIComponent("Suivi de votre projet");
+      window.location.href = `mailto:${lead.email}?subject=${subject}&body=${encodeURIComponent(body)}`;
+    }
+    setOpen(null);
+  };
+
+  const renderPicker = (kind: "wa" | "mail") => (
+    <Command>
+      <CommandInput placeholder="Rechercher un lead…" />
+      <CommandList>
+        <CommandEmpty>Aucun lead</CommandEmpty>
+        <CommandGroup>
+          {leads
+            .filter((l) => (kind === "wa" ? l.phone : l.email))
+            .map((l) => (
+              <CommandItem key={l.id} value={l.client_name} onSelect={() => send(l, kind)}>
+                <div className="flex flex-col">
+                  <span>{l.client_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {kind === "wa" ? l.phone : l.email}
+                  </span>
+                </div>
+              </CommandItem>
+            ))}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  );
+
+  return (
+    <div className="mt-2 flex gap-2">
+      <Popover open={open === "wa"} onOpenChange={(o) => { setOpen(o ? "wa" : null); if (o) load(); }}>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="outline" className="h-7 text-xs">
+            <MessageCircle className="mr-1 h-3.5 w-3.5" /> WhatsApp
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0" align="start">{renderPicker("wa")}</PopoverContent>
+      </Popover>
+      <Popover open={open === "mail"} onOpenChange={(o) => { setOpen(o ? "mail" : null); if (o) load(); }}>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="outline" className="h-7 text-xs">
+            <Mail className="mr-1 h-3.5 w-3.5" /> Email
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-0" align="start">{renderPicker("mail")}</PopoverContent>
+      </Popover>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/copilot")({
   head: () => ({ meta: [{ title: "Copilote IA · Atrium" }] }),
@@ -251,9 +347,12 @@ function ChatPane({
                   {isUser ? (
                     <div className="whitespace-pre-wrap">{text}</div>
                   ) : (
-                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-pre:my-2">
-                      <ReactMarkdown>{text || " "}</ReactMarkdown>
-                    </div>
+                    <>
+                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-pre:my-2">
+                        <ReactMarkdown>{text || " "}</ReactMarkdown>
+                      </div>
+                      {text.trim() && status !== "streaming" && <SendActions text={text} />}
+                    </>
                   )}
                 </div>
               </div>
