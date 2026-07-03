@@ -347,9 +347,12 @@ function ChatPane({
                   {isUser ? (
                     <div className="whitespace-pre-wrap">{text}</div>
                   ) : (
-                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-pre:my-2">
-                      <ReactMarkdown>{text || " "}</ReactMarkdown>
-                    </div>
+                    <>
+                      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-ul:my-2 prose-pre:my-2">
+                        <ReactMarkdown>{text || " "}</ReactMarkdown>
+                      </div>
+                      {text.trim() && status !== "streaming" && <SendActions text={text} />}
+                    </>
                   )}
                 </div>
               </div>
