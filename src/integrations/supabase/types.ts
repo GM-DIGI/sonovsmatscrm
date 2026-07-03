@@ -377,6 +377,53 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_reminders: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          lead_id: string
+          send_at: string
+          sent_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id: string
+          send_at: string
+          sent_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string
+          send_at?: string
+          sent_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_reminders_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
