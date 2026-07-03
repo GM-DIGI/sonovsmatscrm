@@ -16,6 +16,7 @@ import {
   Megaphone,
   Bot,
   MessageCircle,
+  History,
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
