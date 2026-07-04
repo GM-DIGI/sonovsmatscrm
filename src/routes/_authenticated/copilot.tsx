@@ -542,11 +542,20 @@ function ChatPane({
   const [transcribing, setTranscribing] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [voice, setVoice] = useState<string>(() => localStorage.getItem("copilot.voice") ?? "alloy");
+  const [speed, setSpeed] = useState<number>(() => {
+    const v = parseFloat(localStorage.getItem("copilot.voiceSpeed") ?? "1");
+    return Number.isFinite(v) ? v : 1;
+  });
+  const [testingVoice, setTestingVoice] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
+
+  useEffect(() => { localStorage.setItem("copilot.voice", voice); }, [voice]);
+  useEffect(() => { localStorage.setItem("copilot.voiceSpeed", String(speed)); }, [speed]);
 
   const { messages, sendMessage, status, error } = useChat({
     id: threadId,
