@@ -46,6 +46,18 @@ function SendActions({ text }: { text: string }) {
     setLoaded(true);
   };
 
+  const openUrl = (url: string, newTab: boolean) => {
+    const a = document.createElement("a");
+    a.href = url;
+    if (newTab) {
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+    }
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   const send = (lead: LeadContact, kind: "wa" | "mail") => {
     const body = stripMarkdown(text);
     if (kind === "wa") {
@@ -54,14 +66,22 @@ function SendActions({ text }: { text: string }) {
         return;
       }
       const num = lead.phone.replace(/[^\d]/g, "");
-      window.open(`https://wa.me/${num}?text=${encodeURIComponent(body)}`, "_blank");
+      if (!num) {
+        toast.error("Numéro invalide");
+        return;
+      }
+      // wa.me opens WhatsApp app on mobile, WhatsApp Web on desktop
+      openUrl(`https://wa.me/${num}?text=${encodeURIComponent(body)}`, true);
+      toast.success(`WhatsApp ouvert pour ${lead.client_name}`);
     } else {
       if (!lead.email) {
         toast.error("Ce lead n'a pas d'email");
         return;
       }
       const subject = encodeURIComponent("Suivi de votre projet");
-      window.location.href = `mailto:${lead.email}?subject=${subject}&body=${encodeURIComponent(body)}`;
+      // mailto must stay same-tab so the OS mail handler triggers
+      openUrl(`mailto:${lead.email}?subject=${subject}&body=${encodeURIComponent(body)}`, false);
+      toast.success(`Email préparé pour ${lead.client_name}`);
     }
     setOpen(null);
   };
