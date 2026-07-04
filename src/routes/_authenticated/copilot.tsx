@@ -795,6 +795,36 @@ function ChatPane({
         className="border-t border-border bg-card/40 p-3"
       >
         <div className="mx-auto flex max-w-3xl items-end gap-2">
+          <Button
+            type="button"
+            variant={voiceOn ? "default" : "outline"}
+            size="icon"
+            className="h-11 w-11 shrink-0"
+            onClick={() => {
+              if (voiceOn) stopSpeaking();
+              setVoiceOn((v) => !v);
+            }}
+            title={voiceOn ? "Voix activée (cliquer pour couper)" : "Activer la lecture vocale"}
+          >
+            {voiceOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+          <Button
+            type="button"
+            variant={recording ? "destructive" : "outline"}
+            size="icon"
+            className="h-11 w-11 shrink-0"
+            onClick={toggleRecording}
+            disabled={transcribing || busy}
+            title={recording ? "Arrêter l'enregistrement" : "Parler"}
+          >
+            {transcribing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : recording ? (
+              <Square className="h-4 w-4" />
+            ) : (
+              <Mic className="h-4 w-4" />
+            )}
+          </Button>
           <Textarea
             ref={textareaRef}
             value={input}
@@ -805,7 +835,7 @@ function ChatPane({
                 submit();
               }
             }}
-            placeholder="Posez votre question…"
+            placeholder={recording ? "🎙️ Enregistrement en cours…" : "Posez votre question ou parlez…"}
             rows={1}
             className="min-h-[44px] resize-none"
           />
@@ -813,6 +843,21 @@ function ChatPane({
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>
+        {(recording || speaking) && (
+          <div className="mx-auto mt-2 flex max-w-3xl items-center gap-2 text-xs text-muted-foreground">
+            {recording && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-destructive" />
+                Enregistrement…
+              </span>
+            )}
+            {speaking && (
+              <button type="button" onClick={stopSpeaking} className="inline-flex items-center gap-1.5 hover:text-foreground">
+                <Volume2 className="h-3 w-3" /> L'assistant parle — cliquer pour couper
+              </button>
+            )}
+          </div>
+        )}
       </form>
     </>
   );
