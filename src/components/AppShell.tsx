@@ -17,6 +17,7 @@ import {
   Bot,
   MessageCircle,
   History,
+  Menu,
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -48,6 +50,7 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [mobileOpen, setMobileOpen] = useState(false);
   const initials =
     (user?.user_metadata?.name as string | undefined)?.[0]?.toUpperCase() ??
     user?.email?.[0]?.toUpperCase() ??
@@ -55,6 +58,11 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
 
   const [leadCount, setLeadCount] = useState<number>(0);
   const [unread, setUnread] = useState<number>(0);
+
+  // Close mobile drawer on navigation
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (loading || !user) return;
@@ -152,109 +160,127 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
           },
         ];
 
+  const sidebarBody = (
+    <div className="flex h-full flex-col bg-[color:var(--sidebar)] text-[color:var(--sidebar-foreground)]">
+      <div className="flex items-center gap-2 px-5 py-5">
+        <div className="grid h-9 w-9 place-items-center rounded-lg bg-[color:var(--success)] text-[color:var(--success-foreground)] font-bold">
+          S
+        </div>
+        <div>
+          <div className="text-sm font-semibold leading-none">SONOV</div>
+          <div className="text-[10px] uppercase tracking-wider opacity-60">Smart CRM</div>
+        </div>
+      </div>
+      <div className="px-5 pb-3">
+        {role && (
+          <Badge
+            variant="outline"
+            className="border-white/10 bg-white/5 text-[10px] uppercase tracking-wider text-[color:var(--sidebar-foreground)]"
+          >
+            {roleLabel(role)}
+          </Badge>
+        )}
+      </div>
+      <ScrollArea className="flex-1">
+        <nav className="space-y-5 px-3 py-3">
+          {groups.map((g) => (
+            <div key={g.label}>
+              <div className="flex items-center gap-2 px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider opacity-50">
+                <g.icon className="h-3 w-3" />
+                {g.label}
+              </div>
+              <div className="space-y-0.5">
+                {g.items.map((item, i) => {
+                  const active =
+                    pathname === item.to ||
+                    (item.to !== "/" && pathname.startsWith(item.to + "/"));
+                  return (
+                    <Link
+                      key={`${g.label}-${item.label}-${i}`}
+                      to={item.to}
+                      onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
+                        active
+                          ? "bg-[color:var(--sidebar-accent)] text-[color:var(--sidebar-accent-foreground)]"
+                          : "text-[color:var(--sidebar-foreground)]/80 hover:bg-white/5 hover:text-[color:var(--sidebar-foreground)]",
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {typeof item.badge === "number" && item.badge > 0 && (
+                        <span
+                          className={cn(
+                            "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[10px] font-semibold",
+                            active
+                              ? "bg-white/20 text-white"
+                              : "bg-[color:var(--success)] text-[color:var(--success-foreground)]",
+                          )}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+      </ScrollArea>
+      <div className="border-t border-white/10 p-3">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-white/5">
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-sm font-semibold text-white">
+                {initials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium">
+                  {user?.user_metadata?.name ?? user?.email}
+                </div>
+                <div className="truncate text-xs opacity-60">{user?.email}</div>
+              </div>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-56">
+            <DropdownMenuLabel>Connecté en tant que</DropdownMenuLabel>
+            <DropdownMenuItem disabled className="opacity-70">{user?.email}</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={signOut} className="text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              Se déconnecter
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <aside className="hidden w-64 shrink-0 flex-col bg-[color:var(--sidebar)] text-[color:var(--sidebar-foreground)] md:flex">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <div className="grid h-9 w-9 place-items-center rounded-lg bg-[color:var(--success)] text-[color:var(--success-foreground)] font-bold">
-            S
-          </div>
-          <div>
-            <div className="text-sm font-semibold leading-none">SONOV</div>
-            <div className="text-[10px] uppercase tracking-wider opacity-60">Smart CRM</div>
-          </div>
-        </div>
-        <div className="px-5 pb-3">
-          {role && (
-            <Badge
-              variant="outline"
-              className="border-white/10 bg-white/5 text-[10px] uppercase tracking-wider text-[color:var(--sidebar-foreground)]"
-            >
-              {roleLabel(role)}
-            </Badge>
-          )}
-        </div>
-        <ScrollArea className="flex-1">
-          <nav className="space-y-5 px-3 py-3">
-            {groups.map((g) => (
-              <div key={g.label}>
-                <div className="flex items-center gap-2 px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider opacity-50">
-                  <g.icon className="h-3 w-3" />
-                  {g.label}
-                </div>
-                <div className="space-y-0.5">
-                  {g.items.map((item, i) => {
-                    const active =
-                      pathname === item.to ||
-                      (item.to !== "/" && pathname.startsWith(item.to + "/"));
-                    return (
-                      <Link
-                        key={`${g.label}-${item.label}-${i}`}
-                        to={item.to}
-                        className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
-                          active
-                            ? "bg-[color:var(--sidebar-accent)] text-[color:var(--sidebar-accent-foreground)]"
-                            : "text-[color:var(--sidebar-foreground)]/80 hover:bg-white/5 hover:text-[color:var(--sidebar-foreground)]",
-                        )}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span className="flex-1 truncate">{item.label}</span>
-                        {typeof item.badge === "number" && item.badge > 0 && (
-                          <span
-                            className={cn(
-                              "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[10px] font-semibold",
-                              active
-                                ? "bg-white/20 text-white"
-                                : "bg-[color:var(--success)] text-[color:var(--success-foreground)]",
-                            )}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </nav>
-        </ScrollArea>
-        <div className="border-t border-white/10 p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-white/5">
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-sm font-semibold text-white">
-                  {initials}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    {user?.user_metadata?.name ?? user?.email}
-                  </div>
-                  <div className="truncate text-xs opacity-60">{user?.email}</div>
-                </div>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-56">
-              <DropdownMenuLabel>Connecté en tant que</DropdownMenuLabel>
-              <DropdownMenuItem disabled className="opacity-70">{user?.email}</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                Se déconnecter
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+      <aside className="hidden w-64 shrink-0 md:block">
+        {sidebarBody}
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-border bg-card/60 px-4 backdrop-blur md:px-6">
-          <div className="md:hidden flex items-center gap-2">
-          <div className="grid h-7 w-7 place-items-center rounded bg-gradient-brand text-xs font-bold text-white">S</div>
+          <div className="flex items-center gap-2 md:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Ouvrir le menu">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0 border-r-0 [&>button]:text-white">
+                <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
+                {sidebarBody}
+              </SheetContent>
+            </Sheet>
+            <div className="grid h-7 w-7 place-items-center rounded bg-gradient-brand text-xs font-bold text-white">S</div>
             <span className="font-semibold">SONOV</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-2">
             {loading ? <Skeleton className="h-8 w-32" /> : <NotificationsBell />}
           </div>
         </header>
