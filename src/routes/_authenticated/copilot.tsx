@@ -682,10 +682,12 @@ function ChatPane({
         return;
       }
       if (voiceOn) {
+        speakNextReplyRef.current = true;
         sendMessage({ text });
       } else {
-        setInput((prev) => (prev ? `${prev} ${text}` : text));
-        textareaRef.current?.focus();
+        // Note vocale → conversation naturelle : envoyer directement et lire la réponse
+        speakNextReplyRef.current = true;
+        sendMessage({ text });
       }
     } catch (err) {
       toast.error(`Transcription : ${err instanceof Error ? err.message : "échec"}`);
