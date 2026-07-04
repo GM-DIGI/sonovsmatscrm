@@ -599,75 +599,98 @@ function ChatPane({
   // ── Voice: record → transcribe → send ────────────────────────────────────
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      const mime = MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : MediaRecorder.isTypeSupported("audio/mp4")
-        ? "audio/mp4"
-        : "";
-      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
-      chunksRef.current = [];
-      rec.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      rec.onstop = async () => {
-        streamRef.current?.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
-        const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
-        if (blob.size < 1024) {
-          toast.error("Enregistrement trop court");
-          return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error("Micro non disponible dans ce navigateur");
+        return;
+      }
+      const rec = new WavRecorder();
+      try {
+        await rec.start();
+      } catch (err) {
+        const name = err instanceof Error ? err.name : "";
+        if (name === "NotAllowedError" || name === "SecurityError") {
+          toast.error("Micro refusé — autorisez l'accès dans le navigateur");
+        } else if (name === "NotFoundError") {
+          toast.error("Aucun micro détecté");
+        } else {
+          toast.error(`Micro : ${err instanceof Error ? err.message : "échec"}`);
         }
-        setTranscribing(true);
-        try {
-          const { data } = await supabase.auth.getSession();
-          const fd = new FormData();
-          fd.append("file", blob, `recording.${(rec.mimeType || "audio/webm").includes("mp4") ? "mp4" : "webm"}`);
-          const res = await fetch("/api/stt", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${data.session?.access_token ?? ""}` },
-            body: fd,
-          });
-          if (!res.ok) throw new Error(await res.text());
-          const j = (await res.json()) as { text?: string };
-          const text = (j.text ?? "").trim();
-          if (!text) {
-            toast.error("Aucun texte détecté");
-            return;
-          }
-          // Auto-send when voice mode is on; otherwise fill the input for review.
-          if (voiceOn) {
-            sendMessage({ text });
-          } else {
-            setInput((prev) => (prev ? `${prev} ${text}` : text));
-            textareaRef.current?.focus();
-          }
-        } catch (err) {
-          toast.error(`Transcription : ${err instanceof Error ? err.message : "échec"}`);
-        } finally {
-          setTranscribing(false);
-        }
-      };
-      rec.start();
+        return;
+      }
       recorderRef.current = rec;
       setRecording(true);
-    } catch {
-      toast.error("Accès au micro refusé");
+    } catch (err) {
+      toast.error(`Micro : ${err instanceof Error ? err.message : "échec"}`);
     }
   };
 
-  const stopRecording = () => {
-    if (recorderRef.current && recorderRef.current.state !== "inactive") {
-      recorderRef.current.stop();
+  const stopRecording = async () => {
+    const rec = recorderRef.current;
+    if (!rec) {
+      setRecording(false);
+      return;
     }
     setRecording(false);
+    let blob: Blob;
+    try {
+      blob = await rec.stop();
+    } catch (err) {
+      toast.error(`Enregistrement : ${err instanceof Error ? err.message : "échec"}`);
+      return;
+    } finally {
+      recorderRef.current = null;
+    }
+    if (blob.size < 2048) {
+      toast.error("Enregistrement trop court — parlez plus longtemps");
+      return;
+    }
+    setTranscribing(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) {
+        toast.error("Session expirée — reconnectez-vous");
+        return;
+      }
+      const fd = new FormData();
+      fd.append("file", blob, "recording.wav");
+      const res = await fetch("/api/stt", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const bodyText = await res.text();
+      if (!res.ok) {
+        throw new Error(bodyText || `HTTP ${res.status}`);
+      }
+      let text = "";
+      try {
+        text = ((JSON.parse(bodyText) as { text?: string }).text ?? "").trim();
+      } catch {
+        text = bodyText.trim();
+      }
+      if (!text) {
+        toast.error("Aucun texte détecté");
+        return;
+      }
+      if (voiceOn) {
+        sendMessage({ text });
+      } else {
+        setInput((prev) => (prev ? `${prev} ${text}` : text));
+        textareaRef.current?.focus();
+      }
+    } catch (err) {
+      toast.error(`Transcription : ${err instanceof Error ? err.message : "échec"}`);
+    } finally {
+      setTranscribing(false);
+    }
   };
 
   const toggleRecording = () => {
-    if (recording) stopRecording();
+    if (recording) void stopRecording();
     else void startRecording();
   };
+
 
   const stopSpeaking = () => {
     if (audioRef.current) {
