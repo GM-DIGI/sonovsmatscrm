@@ -744,9 +744,11 @@ function ChatPane({
     }
   };
 
-  // Auto-play the last assistant message once streaming finishes, if voice mode is on.
+  // Auto-play the last assistant message once streaming finishes,
+  // if voice mode is on OR the user just sent a voice note.
   useEffect(() => {
-    if (!voiceOn || busy) return;
+    if (busy) return;
+    if (!voiceOn && !speakNextReplyRef.current) return;
     const last = messages[messages.length - 1];
     if (!last || last.role !== "assistant") return;
     if (lastSpokenIdRef.current === last.id) return;
@@ -756,6 +758,7 @@ function ChatPane({
       .trim();
     if (!text) return;
     lastSpokenIdRef.current = last.id;
+    speakNextReplyRef.current = false;
     void speak(text);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, busy, voiceOn]);
