@@ -553,6 +553,7 @@ function ChatPane({
   const recorderRef = useRef<WavRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
+  const speakNextReplyRef = useRef<boolean>(false);
 
   useEffect(() => { localStorage.setItem("copilot.voice", voice); }, [voice]);
   useEffect(() => { localStorage.setItem("copilot.voiceSpeed", String(speed)); }, [speed]);
