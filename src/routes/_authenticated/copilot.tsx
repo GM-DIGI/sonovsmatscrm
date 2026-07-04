@@ -689,7 +689,7 @@ function ChatPane({
           "Content-Type": "application/json",
           Authorization: `Bearer ${data.session?.access_token ?? ""}`,
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, voice, speed }),
       });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
