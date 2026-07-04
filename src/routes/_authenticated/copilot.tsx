@@ -753,7 +753,8 @@ function ChatPane({
   useEffect(() => {
     return () => {
       stopSpeaking();
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      recorderRef.current?.cancel();
+      recorderRef.current = null;
     };
   }, []);
 
