@@ -62,6 +62,7 @@ export class WavRecorder {
   async stop(): Promise<Blob> {
     try {
       this.processor?.disconnect();
+      this.silentGain?.disconnect();
       this.source?.disconnect();
       this.stream?.getTracks().forEach((t) => t.stop());
       const total = this.chunks.reduce((n, c) => n + c.length, 0);
