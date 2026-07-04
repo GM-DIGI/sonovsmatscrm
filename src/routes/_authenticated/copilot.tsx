@@ -194,13 +194,13 @@ function SendActions({ text }: { text: string }) {
       const subject = "Suivi de votre projet";
       const mailto = `mailto:${res.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       const gmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(res.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      openUrl(mailto, false);
+      openUrl(gmailWeb, true);
       try { await navigator.clipboard.writeText(body); } catch {}
-      toast.success(`Email préparé pour ${lead.client_name}`, {
-        description: "Message copié. Si votre client mail ne s'ouvre pas, utilisez Gmail web.",
+      toast.success(`Gmail ouvert pour ${lead.client_name}`, {
+        description: "Message copié. Si Gmail est bloqué, utilisez votre client mail.",
         action: {
-          label: "Gmail web",
-          onClick: () => openUrl(gmailWeb, true),
+          label: "Client mail",
+          onClick: () => openUrl(mailto, false),
         },
       });
     }
