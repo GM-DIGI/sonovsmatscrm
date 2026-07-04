@@ -33,8 +33,8 @@ export function buildInvoiceDoc(invoice: InvoiceRow, lead: LeadLite) {
         columns: [
           {
             stack: [
-              { text: "ATRIUM", style: "brand", color: slate },
-              { text: "Real Estate Group", color: indigo, fontSize: 9, margin: [0, 2, 0, 0] },
+              { text: "SONOV", style: "brand", color: slate },
+              { text: "Smart CRM", color: indigo, fontSize: 9, margin: [0, 2, 0, 0] },
             ],
           },
           {
@@ -205,8 +205,8 @@ export function buildContractDoc(lead: ContractLead) {
   return {
     pageMargins: [50, 60, 50, 70] as [number, number, number, number],
     content: [
-      { text: "ATRIUM", style: "brand", color: slate },
-      { text: "Real Estate Group", color: indigo, fontSize: 9, margin: [0, 2, 0, 0] },
+      { text: "SONOV", style: "brand", color: slate },
+      { text: "Smart CRM", color: indigo, fontSize: 9, margin: [0, 2, 0, 0] },
       { canvas: [{ type: "line", x1: 0, y1: 8, x2: 495, y2: 8, lineWidth: 2, lineColor: slate }] },
       { text: "CONTRAT DE TRANSACTION IMMOBILIÈRE", style: "title", color: slate, margin: [0, 24, 0, 16] },
       {

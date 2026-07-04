@@ -13,8 +13,8 @@ export function BrandedInvoice({
     <div className="mx-auto w-full max-w-2xl rounded-xl border border-border bg-white p-8 text-slate-900 shadow-elevated">
       <div className="flex items-start justify-between border-b-2 border-[color:var(--primary)] pb-4">
         <div>
-          <div className="text-2xl font-bold tracking-[0.2em] text-[color:var(--primary)]">ATRIUM</div>
-          <div className="text-xs text-[color:var(--accent)]">Real Estate Group</div>
+          <div className="text-2xl font-bold tracking-[0.2em] text-[color:var(--primary)]">SONOV</div>
+          <div className="text-xs text-[color:var(--accent)]">Smart CRM</div>
         </div>
         <div className="text-right">
           <div className="text-sm font-semibold uppercase tracking-widest text-[color:var(--primary)]">
