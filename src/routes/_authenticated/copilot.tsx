@@ -553,6 +553,7 @@ function ChatPane({
   const recorderRef = useRef<WavRecorder | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
+  const speakNextReplyRef = useRef<boolean>(false);
 
   useEffect(() => { localStorage.setItem("copilot.voice", voice); }, [voice]);
   useEffect(() => { localStorage.setItem("copilot.voiceSpeed", String(speed)); }, [speed]);
@@ -681,10 +682,12 @@ function ChatPane({
         return;
       }
       if (voiceOn) {
+        speakNextReplyRef.current = true;
         sendMessage({ text });
       } else {
-        setInput((prev) => (prev ? `${prev} ${text}` : text));
-        textareaRef.current?.focus();
+        // Note vocale → conversation naturelle : envoyer directement et lire la réponse
+        speakNextReplyRef.current = true;
+        sendMessage({ text });
       }
     } catch (err) {
       toast.error(`Transcription : ${err instanceof Error ? err.message : "échec"}`);
@@ -741,9 +744,11 @@ function ChatPane({
     }
   };
 
-  // Auto-play the last assistant message once streaming finishes, if voice mode is on.
+  // Auto-play the last assistant message once streaming finishes,
+  // if voice mode is on OR the user just sent a voice note.
   useEffect(() => {
-    if (!voiceOn || busy) return;
+    if (busy) return;
+    if (!voiceOn && !speakNextReplyRef.current) return;
     const last = messages[messages.length - 1];
     if (!last || last.role !== "assistant") return;
     if (lastSpokenIdRef.current === last.id) return;
@@ -753,6 +758,7 @@ function ChatPane({
       .trim();
     if (!text) return;
     lastSpokenIdRef.current = last.id;
+    speakNextReplyRef.current = false;
     void speak(text);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, busy, voiceOn]);
