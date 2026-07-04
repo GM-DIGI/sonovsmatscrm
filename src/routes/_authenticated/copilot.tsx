@@ -166,18 +166,17 @@ function SendActions({ text }: { text: string }) {
         toast.error(`Numéro invalide : ${res.reason}`);
         return;
       }
-      // Use whatsapp:// scheme to open the installed app directly and
-      // bypass network filters that block api.whatsapp.com / wa.me.
-      const waUrl = `whatsapp://send?phone=${res.e164}&text=${encodeURIComponent(body)}`;
-      const webFallback = `https://web.whatsapp.com/send?phone=${res.e164}&text=${encodeURIComponent(body)}`;
-      openUrl(waUrl, false);
-      // Copy the message so the user can paste if the app doesn't open
+      // wa.me expects the phone in E.164 without the leading '+'.
+      // res.e164 is already digits-only after normalization.
+      const waLink = `https://wa.me/${res.e164}?text=${encodeURIComponent(body)}`;
+      const appFallback = `whatsapp://send?phone=${res.e164}&text=${encodeURIComponent(body)}`;
+      openUrl(waLink, true);
       try { await navigator.clipboard.writeText(body); } catch {}
       toast.success(`WhatsApp ouvert pour ${lead.client_name} (+${res.cc})`, {
-        description: "Message copié. Si l'app ne s'ouvre pas, utilisez le lien de secours.",
+        description: "Message copié. Si le lien est bloqué, ouvrez l'app WhatsApp.",
         action: {
-          label: "Lien web",
-          onClick: () => openUrl(webFallback, true),
+          label: "Ouvrir l'app",
+          onClick: () => openUrl(appFallback, false),
         },
       });
 
