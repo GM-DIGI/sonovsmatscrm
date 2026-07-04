@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Atrium — CRM immobilier, portail client & facturation" },
+      { title: "SONOV Smart CRM — CRM immobilier, portail client & facturation" },
       {
         name: "description",
         content:
-          "Atrium pilote tout le parcours client : pipeline kanban, contrôle des documents, facturation de marque et signature électronique — avec un portail client soigné.",
+          "SONOV Smart CRM pilote tout le parcours client : pipeline kanban, contrôle des documents, facturation de marque et signature électronique — avec un portail client soigné.",
       },
     ],
   }),
@@ -22,9 +22,9 @@ function Landing() {
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-2">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-brand text-primary-foreground font-bold">
-            A
+            S
           </div>
-          <span className="font-semibold tracking-tight">Atrium</span>
+          <span className="font-semibold tracking-tight">SONOV</span>
         </div>
         <nav className="flex items-center gap-3">
           <Link to="/auth">
@@ -137,7 +137,7 @@ function Landing() {
         </section>
       </main>
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        © 2026 Atrium Real Estate Group · Espace de démonstration
+        © 2026 SONOV Smart CRM · Espace de démonstration
       </footer>
     </div>
   );

@@ -35,7 +35,7 @@ type Reminder = {
 };
 
 export const Route = createFileRoute("/_authenticated/reminders")({
-  head: () => ({ meta: [{ title: "Historique des relances · Atrium" }] }),
+  head: () => ({ meta: [{ title: "Historique des relances · SONOV" }] }),
   component: RemindersPage,
 });
 

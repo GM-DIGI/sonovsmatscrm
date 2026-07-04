@@ -25,11 +25,11 @@ export const Route = createFileRoute("/lead")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Trouvez votre bien · Atrium Immobilier" },
+      { title: "Trouvez votre bien · SONOV Smart CRM" },
       {
         name: "description",
         content:
-          "Laissez vos coordonnées et un conseiller Atrium vous contacte sous 24 h pour vous présenter les biens correspondant à votre projet.",
+          "Laissez vos coordonnées et un conseiller SONOV vous contacte sous 24 h pour vous présenter les biens correspondant à votre projet.",
       },
     ],
   }),
@@ -97,7 +97,7 @@ function LeadForm() {
           </div>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight">Demande reçue, merci&nbsp;!</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Un conseiller Atrium vous contacte sous 24 heures pour vous présenter
+            Un conseiller SONOV vous contacte sous 24 heures pour vous présenter
             les biens correspondant à votre projet.
           </p>
         </div>
@@ -111,7 +111,7 @@ function LeadForm() {
         <div className="text-white">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs uppercase tracking-wider">
             <Building2 className="h-3.5 w-3.5" />
-            Atrium Immobilier
+            SONOV Smart CRM
           </div>
           <h1 className="mt-4 text-4xl font-bold leading-tight md:text-5xl">
             Trouvez le bien fait pour vous.
@@ -248,7 +248,7 @@ function LeadForm() {
           </Button>
 
           <p className="text-center text-[11px] text-muted-foreground">
-            En soumettant ce formulaire vous acceptez d'être contacté par Atrium au sujet de votre projet immobilier.
+            En soumettant ce formulaire vous acceptez d'être contacté par SONOV au sujet de votre projet immobilier.
           </p>
         </form>
       </div>

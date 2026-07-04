@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/documents")({
-  head: () => ({ meta: [{ title: "Documents · Atrium CRM" }] }),
+  head: () => ({ meta: [{ title: "Documents · SONOV Smart CRM" }] }),
   component: DocumentsPage,
 });
 

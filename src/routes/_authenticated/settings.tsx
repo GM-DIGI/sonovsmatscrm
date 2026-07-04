@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Paramètres · Atrium CRM" }] }),
+  head: () => ({ meta: [{ title: "Paramètres · SONOV Smart CRM" }] }),
   component: SettingsPage,
 });
 
