@@ -193,14 +193,16 @@ function SendActions({ text }: { text: string }) {
       }
       const subject = "Suivi de votre projet";
       const mailto = `mailto:${res.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      const gmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(res.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      openUrl(gmailWeb, true);
-      try { await navigator.clipboard.writeText(body); } catch {}
-      toast.success(`Gmail ouvert pour ${lead.client_name}`, {
-        description: "Message copié. Si Gmail est bloqué, utilisez votre client mail.",
+      const outlookWeb = `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(res.email)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      // Native mail client first (works even when Gmail/Outlook web are blocked by the network)
+      openUrl(mailto, false);
+      const full = `À: ${res.email}\nSujet: ${subject}\n\n${body}`;
+      try { await navigator.clipboard.writeText(full); } catch {}
+      toast.success(`Email prêt pour ${lead.client_name}`, {
+        description: "Message copié (destinataire + sujet + corps). Si aucun client mail ne s'ouvre, utilisez Outlook web.",
         action: {
-          label: "Client mail",
-          onClick: () => openUrl(mailto, false),
+          label: "Outlook web",
+          onClick: () => openUrl(outlookWeb, true),
         },
       });
     }
