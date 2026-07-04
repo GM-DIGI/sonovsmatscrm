@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/tts")({
         const key = process.env.LOVABLE_API_KEY;
         if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
 
-        let body: { text?: string; voice?: string };
+        let body: { text?: string; voice?: string; speed?: number };
         try {
           body = await request.json();
         } catch {
@@ -26,6 +26,8 @@ export const Route = createFileRoute("/api/tts")({
         // Cap per request; the client should chunk long content.
         const input = text.slice(0, 3500);
         const voice = body.voice || "alloy";
+        const speedRaw = typeof body.speed === "number" ? body.speed : 1.0;
+        const speed = Math.min(4, Math.max(0.25, speedRaw));
 
         const upstream = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
           method: "POST",
