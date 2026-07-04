@@ -541,6 +541,7 @@ function ChatPane({
   // ── Voice assistant state ────────────────────────────────────────────────
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [micLevel, setMicLevel] = useState(0);
   const [voiceOn, setVoiceOn] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<string>(() => localStorage.getItem("copilot.voice") ?? "alloy");
