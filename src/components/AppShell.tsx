@@ -111,6 +111,7 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
             label: "Pipeline",
             icon: GitBranch,
             items: [
+              { to: "/analytics", label: "Tableau de bord", icon: Home },
               { to: "/dashboard", label: "Kanban", icon: KanbanSquare },
               { to: "/dashboard", label: "Mes leads", icon: UserSquare2, badge: leadCount },
             ],
