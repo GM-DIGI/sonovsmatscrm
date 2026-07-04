@@ -542,11 +542,20 @@ function ChatPane({
   const [transcribing, setTranscribing] = useState(false);
   const [voiceOn, setVoiceOn] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [voice, setVoice] = useState<string>(() => localStorage.getItem("copilot.voice") ?? "alloy");
+  const [speed, setSpeed] = useState<number>(() => {
+    const v = parseFloat(localStorage.getItem("copilot.voiceSpeed") ?? "1");
+    return Number.isFinite(v) ? v : 1;
+  });
+  const [testingVoice, setTestingVoice] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastSpokenIdRef = useRef<string | null>(null);
+
+  useEffect(() => { localStorage.setItem("copilot.voice", voice); }, [voice]);
+  useEffect(() => { localStorage.setItem("copilot.voiceSpeed", String(speed)); }, [speed]);
 
   const { messages, sendMessage, status, error } = useChat({
     id: threadId,
@@ -680,7 +689,7 @@ function ChatPane({
           "Content-Type": "application/json",
           Authorization: `Bearer ${data.session?.access_token ?? ""}`,
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, voice, speed }),
       });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
@@ -786,6 +795,72 @@ function ChatPane({
                 <Loader2 className="inline h-3.5 w-3.5 animate-spin" /> Réflexion…
               </div>
             </div>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-border bg-card/40 px-3 pt-3">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-3 pb-2 text-xs text-muted-foreground">
+          <label className="flex items-center gap-1.5">
+            <Volume2 className="h-3.5 w-3.5" />
+            <span>Voix</span>
+            <select
+              value={voice}
+              onChange={(e) => setVoice(e.target.value)}
+              className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+            >
+              {[
+                { v: "alloy", label: "Alloy (neutre)" },
+                { v: "ash", label: "Ash (chaleureux)" },
+                { v: "ballad", label: "Ballad (posé)" },
+                { v: "coral", label: "Coral (clair)" },
+                { v: "echo", label: "Echo (masculin)" },
+                { v: "fable", label: "Fable (narratif)" },
+                { v: "nova", label: "Nova (féminin)" },
+                { v: "onyx", label: "Onyx (grave)" },
+                { v: "sage", label: "Sage (calme)" },
+                { v: "shimmer", label: "Shimmer (doux)" },
+                { v: "verse", label: "Verse (expressif)" },
+              ].map((o) => (
+                <option key={o.v} value={o.v}>{o.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-1.5">
+            <span>Vitesse</span>
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              step={0.05}
+              value={speed}
+              onChange={(e) => setSpeed(parseFloat(e.target.value))}
+              className="h-1 w-28 accent-primary"
+            />
+            <span className="w-10 tabular-nums text-foreground">{speed.toFixed(2)}×</span>
+          </label>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-7 px-2 text-xs"
+            disabled={testingVoice}
+            onClick={async () => {
+              setTestingVoice(true);
+              try {
+                await speak("Bonjour, je suis votre copilote SONOV. Cette voix vous convient-elle ?");
+              } finally {
+                setTestingVoice(false);
+              }
+            }}
+          >
+            {testingVoice ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Volume2 className="mr-1 h-3 w-3" />}
+            Tester
+          </Button>
+          {speaking && (
+            <button type="button" onClick={stopSpeaking} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 hover:text-foreground">
+              <Square className="h-3 w-3" /> Stop
+            </button>
           )}
         </div>
       </div>
