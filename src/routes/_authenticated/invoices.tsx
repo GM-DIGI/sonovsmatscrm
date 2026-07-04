@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/invoices")({
-  head: () => ({ meta: [{ title: "Factures · Atrium CRM" }] }),
+  head: () => ({ meta: [{ title: "Factures · SONOV Smart CRM" }] }),
   component: InvoicesPage,
 });
 

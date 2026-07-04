@@ -94,7 +94,7 @@ export function BrandedInvoice({
       )}
 
       <div className="mt-8 border-t border-slate-200 pt-3 text-[10px] text-slate-400">
-        Atrium Real Estate Group · contact@atrium.example · TVA EU-0000-0000
+        SONOV Smart CRM · contact@sonov.example · TVA EU-0000-0000
       </div>
     </div>
   );

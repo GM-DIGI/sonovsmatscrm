@@ -215,7 +215,7 @@ function ScheduleAction({
 }
 
 export const Route = createFileRoute("/_authenticated/copilot")({
-  head: () => ({ meta: [{ title: "Copilote IA · Atrium" }] }),
+  head: () => ({ meta: [{ title: "Copilote IA · SONOV" }] }),
   component: CopilotPage,
 });
 
@@ -348,7 +348,7 @@ function EmptyState({ onNew }: { onNew: () => void }) {
         <Bot className="h-7 w-7" />
       </div>
       <div>
-        <h2 className="text-xl font-semibold">Atrium Copilot</h2>
+        <h2 className="text-xl font-semibold">SONOV Copilot</h2>
         <p className="text-sm text-muted-foreground">
           Demandez un résumé de pipeline, une priorité, ou rédigez une relance.
         </p>

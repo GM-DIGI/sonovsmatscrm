@@ -147,7 +147,7 @@ export function buildInvoiceDoc(invoice: InvoiceRow, lead: LeadLite) {
       { text: invoice.notes ?? "", margin: [0, 24, 0, 0], color: "#555", fontSize: 9 },
       {
         absolutePosition: { x: 40, y: 780 },
-        text: "Atrium Real Estate Group · contact@atrium.example · VAT EU-0000-0000",
+        text: "SONOV Smart CRM · contact@sonov.example · VAT EU-0000-0000",
         color: "#999",
         fontSize: 8,
       },
@@ -212,7 +212,7 @@ export function buildContractDoc(lead: ContractLead) {
       {
         text: [
           { text: "Entre les soussignés :\n\n", bold: true },
-          "Atrium Real Estate Group, ci-après dénommée « l'Agence »,\net\n",
+          "SONOV Smart CRM, ci-après dénommée « l'Agence »,\net\n",
           { text: `${lead.client_name}`, bold: true },
           ` (${lead.email}), ci-après dénommé(e) « le Client ».\n\n`,
         ],
@@ -236,7 +236,7 @@ export function buildContractDoc(lead: ContractLead) {
             stack: [
               { text: "L'Agence", bold: true, color: slate },
               { canvas: [{ type: "line", x1: 0, y1: 50, x2: 180, y2: 50, lineWidth: 1, lineColor: "#999" }] },
-              { text: "Atrium Real Estate", fontSize: 9, color: "#666", margin: [0, 4, 0, 0] },
+              { text: "SONOV Smart CRM", fontSize: 9, color: "#666", margin: [0, 4, 0, 0] },
             ],
           },
           {
@@ -250,7 +250,7 @@ export function buildContractDoc(lead: ContractLead) {
       },
       {
         absolutePosition: { x: 50, y: 780 },
-        text: "Atrium Real Estate Group · contact@atrium.example · VAT EU-0000-0000",
+        text: "SONOV Smart CRM · contact@sonov.example · VAT EU-0000-0000",
         color: "#999",
         fontSize: 8,
       },

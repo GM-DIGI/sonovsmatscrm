@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { REQUIRED_DOCS, type LeadStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Pipeline · Atrium CRM" }] }),
+  head: () => ({ meta: [{ title: "Pipeline · SONOV Smart CRM" }] }),
   component: DashboardPage,
 });
 

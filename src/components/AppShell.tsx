@@ -159,7 +159,7 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
             A
           </div>
           <div>
-            <div className="text-sm font-semibold leading-none">Atrium</div>
+            <div className="text-sm font-semibold leading-none">SONOV</div>
             <div className="text-[10px] uppercase tracking-wider opacity-60">CRM Immobilier</div>
           </div>
         </div>
@@ -251,7 +251,7 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
         <header className="flex h-14 items-center justify-between border-b border-border bg-card/60 px-4 backdrop-blur md:px-6">
           <div className="md:hidden flex items-center gap-2">
             <div className="grid h-7 w-7 place-items-center rounded bg-gradient-brand text-xs font-bold text-white">A</div>
-            <span className="font-semibold">Atrium</span>
+            <span className="font-semibold">SONOV</span>
           </div>
           <div className="flex items-center gap-2">
             {loading ? <Skeleton className="h-8 w-32" /> : <NotificationsBell />}

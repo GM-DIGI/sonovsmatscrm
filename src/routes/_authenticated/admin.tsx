@@ -15,7 +15,7 @@ import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Équipe & rôles · Atrium" }] }),
+  head: () => ({ meta: [{ title: "Équipe & rôles · SONOV" }] }),
   component: AdminPage,
 });
 

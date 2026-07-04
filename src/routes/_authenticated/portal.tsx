@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/portal")({
-  head: () => ({ meta: [{ title: "Mon parcours · Atrium" }] }),
+  head: () => ({ meta: [{ title: "Mon parcours · SONOV" }] }),
   component: PortalPage,
 });
 
@@ -75,7 +75,7 @@ function PortalPage() {
     return (
       <AppShell role={role}>
         <div className="mx-auto max-w-2xl space-y-4 p-8">
-          <h1 className="text-2xl font-semibold">Bienvenue chez Atrium</h1>
+          <h1 className="text-2xl font-semibold">Bienvenue chez SONOV</h1>
           <p className="text-muted-foreground">
             Aucun dossier actif n'a été trouvé pour votre adresse e-mail. Votre agent immobilier
             créera votre dossier sous peu — dès qu'il sera prêt, votre parcours personnalisé

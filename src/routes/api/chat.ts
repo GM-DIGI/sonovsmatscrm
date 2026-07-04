@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/chat")({
 
         const result = streamText({
           model: gateway("google/gemini-3-flash-preview"),
-          system: `Tu es Atrium Copilot, l'assistant IA d'un CRM immobilier français. Réponds en français, en markdown, avec concision. Tu aides l'utilisateur (rôle ${roleRow?.role ?? "agent"}) à prioriser ses leads, rédiger des messages clients, résumer les dossiers et suggérer la prochaine action. Voici un extrait des leads ${isAdmin ? "de l'agence" : "de cet agent"} :\n${leadsCtx}`,
+          system: `Tu es SONOV Copilot, l'assistant IA d'un CRM immobilier français. Réponds en français, en markdown, avec concision. Tu aides l'utilisateur (rôle ${roleRow?.role ?? "agent"}) à prioriser ses leads, rédiger des messages clients, résumer les dossiers et suggérer la prochaine action. Voici un extrait des leads ${isAdmin ? "de l'agence" : "de cet agent"} :\n${leadsCtx}`,
           messages: await convertToModelMessages(messages),
           onFinish: async ({ text }) => {
             await supabaseAdmin.from("chat_messages").insert({

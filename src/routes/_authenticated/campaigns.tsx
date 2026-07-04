@@ -10,7 +10,7 @@ import { Copy, ExternalLink, Megaphone, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/campaigns")({
-  head: () => ({ meta: [{ title: "Formulaire campagne · Atrium CRM" }] }),
+  head: () => ({ meta: [{ title: "Formulaire campagne · SONOV Smart CRM" }] }),
   component: CampaignsPage,
 });
 

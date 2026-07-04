@@ -17,8 +17,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Connexion · Atrium CRM" },
-      { name: "description", content: "Accédez à votre espace Atrium CRM ou à votre portail client." },
+      { title: "Connexion · SONOV Smart CRM" },
+      { name: "description", content: "Accédez à votre espace SONOV Smart CRM ou à votre portail client." },
     ],
   }),
   component: AuthPage,
@@ -150,7 +150,7 @@ function AuthPage() {
           <div className="grid h-10 w-10 place-items-center rounded-lg bg-[color:var(--success)] text-[color:var(--success-foreground)] font-bold">
             A
           </div>
-          <span className="text-lg font-semibold">Atrium</span>
+          <span className="text-lg font-semibold">SONOV</span>
         </div>
         <div>
           <h2 className="text-4xl font-semibold leading-tight">
@@ -161,7 +161,7 @@ function AuthPage() {
             parcours dans un portail sécurisé. Factures et signatures, automatisées.
           </p>
         </div>
-        <p className="text-xs opacity-60">© 2026 Atrium Real Estate Group</p>
+        <p className="text-xs opacity-60">© 2026 SONOV Smart CRM</p>
       </div>
       <div className="flex items-center justify-center p-6">
         <Card className="w-full max-w-md border-border">
