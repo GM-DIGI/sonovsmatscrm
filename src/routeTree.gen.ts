@@ -13,6 +13,7 @@ import { Route as LeadRouteImport } from './routes/lead'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as ApiSttRouteImport } from './routes/api/stt'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -47,6 +48,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTtsRoute = ApiTtsRouteImport.update({
+  id: '/api/tts',
+  path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSttRoute = ApiSttRouteImport.update({
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/tts': typeof ApiTtsRoute
   '/api/public/leads': typeof ApiPublicLeadsRoute
   '/api/public/hooks/send-reminders': typeof ApiPublicHooksSendRemindersRoute
 }
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/tts': typeof ApiTtsRoute
   '/api/public/leads': typeof ApiPublicLeadsRoute
   '/api/public/hooks/send-reminders': typeof ApiPublicHooksSendRemindersRoute
 }
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/api/stt': typeof ApiSttRoute
+  '/api/tts': typeof ApiTtsRoute
   '/api/public/leads': typeof ApiPublicLeadsRoute
   '/api/public/hooks/send-reminders': typeof ApiPublicHooksSendRemindersRoute
 }
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/api/chat'
     | '/api/stt'
+    | '/api/tts'
     | '/api/public/leads'
     | '/api/public/hooks/send-reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/api/chat'
     | '/api/stt'
+    | '/api/tts'
     | '/api/public/leads'
     | '/api/public/hooks/send-reminders'
   id:
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/api/chat'
     | '/api/stt'
+    | '/api/tts'
     | '/api/public/leads'
     | '/api/public/hooks/send-reminders'
   fileRoutesById: FileRoutesById
@@ -270,6 +282,7 @@ export interface RootRouteChildren {
   LeadRoute: typeof LeadRoute
   ApiChatRoute: typeof ApiChatRoute
   ApiSttRoute: typeof ApiSttRoute
+  ApiTtsRoute: typeof ApiTtsRoute
   ApiPublicLeadsRoute: typeof ApiPublicLeadsRoute
   ApiPublicHooksSendRemindersRoute: typeof ApiPublicHooksSendRemindersRoute
 }
@@ -302,6 +315,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tts': {
+      id: '/api/tts'
+      path: '/api/tts'
+      fullPath: '/api/tts'
+      preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/stt': {
@@ -459,6 +479,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeadRoute: LeadRoute,
   ApiChatRoute: ApiChatRoute,
   ApiSttRoute: ApiSttRoute,
+  ApiTtsRoute: ApiTtsRoute,
   ApiPublicLeadsRoute: ApiPublicLeadsRoute,
   ApiPublicHooksSendRemindersRoute: ApiPublicHooksSendRemindersRoute,
 }

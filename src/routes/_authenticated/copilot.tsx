@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Loader2, Plus, Sparkles, Trash2, Send, Bot, Mail, MessageCircle, Clock, X } from "lucide-react";
+import { Loader2, Plus, Sparkles, Trash2, Send, Bot, Mail, MessageCircle, Clock, X, Mic, Square, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
