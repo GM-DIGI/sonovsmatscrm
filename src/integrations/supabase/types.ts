@@ -245,6 +245,7 @@ export type Database = {
           ai_score: number | null
           ai_score_reason: string | null
           ai_scored_at: string | null
+          airtable_record_id: string | null
           assigned_agent_id: string | null
           budget: number | null
           campaign: string | null
@@ -269,6 +270,7 @@ export type Database = {
           ai_score?: number | null
           ai_score_reason?: string | null
           ai_scored_at?: string | null
+          airtable_record_id?: string | null
           assigned_agent_id?: string | null
           budget?: number | null
           campaign?: string | null
@@ -293,6 +295,7 @@ export type Database = {
           ai_score?: number | null
           ai_score_reason?: string | null
           ai_scored_at?: string | null
+          airtable_record_id?: string | null
           assigned_agent_id?: string | null
           budget?: number | null
           campaign?: string | null
