@@ -605,6 +605,7 @@ function ChatPane({
         return;
       }
       const rec = new WavRecorder();
+      rec.onLevel = (l) => setMicLevel(l);
       try {
         await rec.start();
       } catch (err) {
