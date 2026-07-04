@@ -6,37 +6,63 @@ export class WavRecorder {
   private ctx: AudioContext | null = null;
   private source: MediaStreamAudioSourceNode | null = null;
   private processor: ScriptProcessorNode | null = null;
+  private silentGain: GainNode | null = null;
   private chunks: Float32Array[] = [];
   private sampleRate = 44100;
+  private peak = 0;
+  onLevel?: (level: number) => void;
 
   async start(): Promise<void> {
+    // Keep filters OFF: aggressive noiseSuppression/AGC on some systems
+    // zeroes out low-volume speech and produces "silent" recordings.
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+        channelCount: 1,
       },
     });
     const AudioCtx =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     this.ctx = new AudioCtx();
+    if (this.ctx.state === "suspended") {
+      await this.ctx.resume().catch(() => {});
+    }
     this.sampleRate = this.ctx.sampleRate;
     this.source = this.ctx.createMediaStreamSource(this.stream);
-    // ScriptProcessorNode is deprecated but universally supported and simple.
     this.processor = this.ctx.createScriptProcessor(4096, 1, 1);
+    // Sink to destination via gain=0 so the mic is NOT played back through speakers
+    // (avoids feedback) while still driving the ScriptProcessor.
+    this.silentGain = this.ctx.createGain();
+    this.silentGain.gain.value = 0;
     this.chunks = [];
+    this.peak = 0;
     this.processor.onaudioprocess = (e) => {
       const input = e.inputBuffer.getChannelData(0);
       this.chunks.push(new Float32Array(input));
+      let localPeak = 0;
+      for (let i = 0; i < input.length; i++) {
+        const v = Math.abs(input[i]);
+        if (v > localPeak) localPeak = v;
+      }
+      if (localPeak > this.peak) this.peak = localPeak;
+      this.onLevel?.(localPeak);
     };
     this.source.connect(this.processor);
-    this.processor.connect(this.ctx.destination);
+    this.processor.connect(this.silentGain);
+    this.silentGain.connect(this.ctx.destination);
+  }
+
+  getPeak(): number {
+    return this.peak;
   }
 
   async stop(): Promise<Blob> {
     try {
       this.processor?.disconnect();
+      this.silentGain?.disconnect();
       this.source?.disconnect();
       this.stream?.getTracks().forEach((t) => t.stop());
       const total = this.chunks.reduce((n, c) => n + c.length, 0);

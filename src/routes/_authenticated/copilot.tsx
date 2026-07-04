@@ -541,6 +541,7 @@ function ChatPane({
   // ── Voice assistant state ────────────────────────────────────────────────
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [micLevel, setMicLevel] = useState(0);
   const [voiceOn, setVoiceOn] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [voice, setVoice] = useState<string>(() => localStorage.getItem("copilot.voice") ?? "alloy");
@@ -604,6 +605,7 @@ function ChatPane({
         return;
       }
       const rec = new WavRecorder();
+      rec.onLevel = (l) => setMicLevel(l);
       try {
         await rec.start();
       } catch (err) {
@@ -631,6 +633,7 @@ function ChatPane({
       return;
     }
     setRecording(false);
+    const peak = rec.getPeak();
     let blob: Blob;
     try {
       blob = await rec.stop();
@@ -639,9 +642,14 @@ function ChatPane({
       return;
     } finally {
       recorderRef.current = null;
+      setMicLevel(0);
     }
     if (blob.size < 2048) {
       toast.error("Enregistrement trop court — parlez plus longtemps");
+      return;
+    }
+    if (peak < 0.01) {
+      toast.error("Micro silencieux — vérifiez l'entrée audio de votre système (aucun son détecté)");
       return;
     }
     setTranscribing(true);
@@ -957,9 +965,16 @@ function ChatPane({
         {(recording || speaking) && (
           <div className="mx-auto mt-2 flex max-w-3xl items-center gap-2 text-xs text-muted-foreground">
             {recording && (
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-2">
                 <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-destructive" />
                 Enregistrement…
+                <span className="ml-1 inline-block h-2 w-32 overflow-hidden rounded-full bg-muted" title="Niveau du micro">
+                  <span
+                    className="block h-full bg-primary transition-[width] duration-75"
+                    style={{ width: `${Math.min(100, Math.round(micLevel * 300))}%` }}
+                  />
+                </span>
+                <span className="tabular-nums">{Math.round(micLevel * 100)}%</span>
               </span>
             )}
             {speaking && (
