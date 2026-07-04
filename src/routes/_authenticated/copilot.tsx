@@ -135,7 +135,7 @@ function SendActions({ text }: { text: string }) {
     a.remove();
   };
 
-  const send = (lead: LeadContact, kind: "wa" | "mail") => {
+  const send = async (lead: LeadContact, kind: "wa" | "mail") => {
     const body = stripMarkdown(text);
     if (kind === "wa") {
       if (!lead.phone) {
