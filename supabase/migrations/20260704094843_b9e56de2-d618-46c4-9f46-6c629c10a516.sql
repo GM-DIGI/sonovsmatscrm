@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_lead_to_airtable() FROM PUBLIC, anon, authenticated;

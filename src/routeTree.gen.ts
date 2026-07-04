@@ -30,6 +30,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicLeadsRouteImport } from './routes/api/public/leads'
 import { Route as ApiPublicHooksSendRemindersRouteImport } from './routes/api/public/hooks/send-reminders'
+import { Route as ApiPublicHooksAirtableSyncLeadRouteImport } from './routes/api/public/hooks/airtable-sync-lead'
 
 const LeadRoute = LeadRouteImport.update({
   id: '/lead',
@@ -136,6 +137,12 @@ const ApiPublicHooksSendRemindersRoute =
     path: '/api/public/hooks/send-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAirtableSyncLeadRoute =
+  ApiPublicHooksAirtableSyncLeadRouteImport.update({
+    id: '/api/public/hooks/airtable-sync-lead',
+    path: '/api/public/hooks/airtable-sync-lead',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/api/stt': typeof ApiSttRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/public/leads': typeof ApiPublicLeadsRoute
+  '/api/public/hooks/airtable-sync-lead': typeof ApiPublicHooksAirtableSyncLeadRoute
   '/api/public/hooks/send-reminders': typeof ApiPublicHooksSendRemindersRoute
 }
 export interface FileRoutesByTo {
@@ -179,6 +187,7 @@ export interface FileRoutesByTo {
   '/api/stt': typeof ApiSttRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/public/leads': typeof ApiPublicLeadsRoute
+  '/api/public/hooks/airtable-sync-lead': typeof ApiPublicHooksAirtableSyncLeadRoute
   '/api/public/hooks/send-reminders': typeof ApiPublicHooksSendRemindersRoute
 }
 export interface FileRoutesById {
@@ -203,6 +212,7 @@ export interface FileRoutesById {
   '/api/stt': typeof ApiSttRoute
   '/api/tts': typeof ApiTtsRoute
   '/api/public/leads': typeof ApiPublicLeadsRoute
+  '/api/public/hooks/airtable-sync-lead': typeof ApiPublicHooksAirtableSyncLeadRoute
   '/api/public/hooks/send-reminders': typeof ApiPublicHooksSendRemindersRoute
 }
 export interface FileRouteTypes {
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/api/stt'
     | '/api/tts'
     | '/api/public/leads'
+    | '/api/public/hooks/airtable-sync-lead'
     | '/api/public/hooks/send-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/api/stt'
     | '/api/tts'
     | '/api/public/leads'
+    | '/api/public/hooks/airtable-sync-lead'
     | '/api/public/hooks/send-reminders'
   id:
     | '__root__'
@@ -272,6 +284,7 @@ export interface FileRouteTypes {
     | '/api/stt'
     | '/api/tts'
     | '/api/public/leads'
+    | '/api/public/hooks/airtable-sync-lead'
     | '/api/public/hooks/send-reminders'
   fileRoutesById: FileRoutesById
 }
@@ -284,6 +297,7 @@ export interface RootRouteChildren {
   ApiSttRoute: typeof ApiSttRoute
   ApiTtsRoute: typeof ApiTtsRoute
   ApiPublicLeadsRoute: typeof ApiPublicLeadsRoute
+  ApiPublicHooksAirtableSyncLeadRoute: typeof ApiPublicHooksAirtableSyncLeadRoute
   ApiPublicHooksSendRemindersRoute: typeof ApiPublicHooksSendRemindersRoute
 }
 
@@ -436,6 +450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksSendRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/airtable-sync-lead': {
+      id: '/api/public/hooks/airtable-sync-lead'
+      path: '/api/public/hooks/airtable-sync-lead'
+      fullPath: '/api/public/hooks/airtable-sync-lead'
+      preLoaderRoute: typeof ApiPublicHooksAirtableSyncLeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -481,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSttRoute: ApiSttRoute,
   ApiTtsRoute: ApiTtsRoute,
   ApiPublicLeadsRoute: ApiPublicLeadsRoute,
+  ApiPublicHooksAirtableSyncLeadRoute: ApiPublicHooksAirtableSyncLeadRoute,
   ApiPublicHooksSendRemindersRoute: ApiPublicHooksSendRemindersRoute,
 }
 export const routeTree = rootRouteImport
