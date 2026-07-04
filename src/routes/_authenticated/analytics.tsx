@@ -417,7 +417,7 @@ function AnalyticsPage() {
                               : "Planifiée"}
                       </div>
                       <div className="truncate text-[11px] text-muted-foreground">
-                        {new Date(r.scheduled_for).toLocaleString("fr-FR")}
+                        {new Date(r.send_at).toLocaleString("fr-FR")}
                       </div>
                     </div>
                   </li>
