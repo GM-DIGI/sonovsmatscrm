@@ -76,10 +76,11 @@ export class WavRecorder {
         merged.set(c, offset);
         offset += c.length;
       }
-      // Downsample to 16 kHz for lighter uploads.
+      // Downsample to 16 kHz for lighter uploads, then normalize quiet mics.
       const targetRate = 16000;
       const downsampled = downsample(merged, this.sampleRate, targetRate);
-      const wav = encodeWav(downsampled, targetRate);
+      const normalized = normalizeSpeech(downsampled);
+      const wav = encodeWav(normalized, targetRate);
       return new Blob([wav], { type: "audio/wav" });
     } finally {
       if (this.ctx && this.ctx.state !== "closed") {
@@ -125,6 +126,35 @@ function downsample(buffer: Float32Array, from: number, to: number): Float32Arra
     pos++;
   }
   return out;
+}
+
+function normalizeSpeech(samples: Float32Array): Float32Array {
+  if (samples.length === 0) return samples;
+
+  let sum = 0;
+  for (let i = 0; i < samples.length; i++) sum += samples[i];
+  const dcOffset = sum / samples.length;
+
+  let peak = 0;
+  const centered = new Float32Array(samples.length);
+  for (let i = 0; i < samples.length; i++) {
+    const value = samples[i] - dcOffset;
+    centered[i] = value;
+    const abs = Math.abs(value);
+    if (abs > peak) peak = abs;
+  }
+
+  // Very quiet laptop/phone mics often produce valid WAV files that the STT
+  // model treats as silence. Boost real but low speech before upload.
+  if (peak < 0.0005) return centered;
+  const gain = Math.min(40, 0.85 / peak);
+  if (gain <= 1.05) return centered;
+
+  const boosted = new Float32Array(centered.length);
+  for (let i = 0; i < centered.length; i++) {
+    boosted[i] = Math.max(-1, Math.min(1, centered[i] * gain));
+  }
+  return boosted;
 }
 
 function encodeWav(samples: Float32Array, sampleRate: number): ArrayBuffer {

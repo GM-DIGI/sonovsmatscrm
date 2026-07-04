@@ -28,6 +28,8 @@ export const Route = createFileRoute("/api/stt")({
 
         const upstream = new FormData();
         upstream.append("model", "openai/gpt-4o-mini-transcribe");
+        upstream.append("language", "fr");
+        upstream.append("prompt", "Transcris précisément une note vocale en français pour un assistant CRM. Si l'audio contient une question ou une instruction courte, rends uniquement le texte dicté.");
         // Preserve container/extension so the provider can decode it.
         const type = file.type.split(";")[0] || "audio/webm";
         const ext =
