@@ -187,10 +187,25 @@ function SendActions({ text }: { text: string }) {
         toast.error("Ce lead n'a pas d'email");
         return;
       }
-      const subject = encodeURIComponent("Suivi de votre projet");
-      openUrl(`mailto:${lead.email}?subject=${subject}&body=${encodeURIComponent(body)}`, false);
-      toast.success(`Email préparé pour ${lead.client_name}`);
+      const res = normalizeEmail(lead.email);
+      if (!res.ok) {
+        toast.error(`Email invalide : ${res.reason}`);
+        return;
+      }
+      const subject = "Suivi de votre projet";
+      const mailto = `mailto:${res.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const gmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(res.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      openUrl(mailto, false);
+      try { await navigator.clipboard.writeText(body); } catch {}
+      toast.success(`Email préparé pour ${lead.client_name}`, {
+        description: "Message copié. Si votre client mail ne s'ouvre pas, utilisez Gmail web.",
+        action: {
+          label: "Gmail web",
+          onClick: () => openUrl(gmailWeb, true),
+        },
+      });
     }
+
     setOpen(null);
   };
 
