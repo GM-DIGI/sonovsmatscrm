@@ -13,16 +13,20 @@ export class WavRecorder {
   onLevel?: (level: number) => void;
 
   async start(): Promise<void> {
-    // Keep filters OFF: aggressive noiseSuppression/AGC on some systems
-    // zeroes out low-volume speech and produces "silent" recordings.
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-        channelCount: 1,
-      },
-    });
+    // Enable AGC so quiet built-in mics get boosted; keep NS/EC off so speech
+    // isn't zeroed out. If getUserMedia rejects these constraints, retry bare.
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: true,
+          channelCount: 1,
+        },
+      });
+    } catch {
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
     const AudioCtx =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
