@@ -648,9 +648,8 @@ function ChatPane({
       toast.error("Enregistrement trop court — parlez plus longtemps");
       return;
     }
-    if (peak < 0.01) {
-      toast.error("Micro silencieux — vérifiez l'entrée audio de votre système (aucun son détecté)");
-      return;
+    if (peak < 0.005) {
+      toast.warning("Signal micro très faible — tentative de transcription quand même");
     }
     setTranscribing(true);
     try {
