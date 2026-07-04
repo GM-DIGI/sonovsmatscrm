@@ -914,6 +914,19 @@ function ChatPane({
             rows={1}
             className="min-h-[44px] resize-none"
           />
+          {speaking && (
+            <Button
+              type="button"
+              onClick={stopSpeaking}
+              variant="destructive"
+              className="h-11 shrink-0 gap-1.5"
+              title="Interrompre la lecture vocale"
+              aria-label="Stop lecture vocale"
+            >
+              <Square className="h-4 w-4 fill-current" />
+              Stop
+            </Button>
+          )}
           <Button type="submit" disabled={busy || !input.trim()} size="icon" className="h-11 w-11 shrink-0">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
