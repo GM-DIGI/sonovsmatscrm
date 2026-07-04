@@ -537,6 +537,17 @@ function ChatPane({
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // ── Voice assistant state ────────────────────────────────────────────────
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [voiceOn, setVoiceOn] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const lastSpokenIdRef = useRef<string | null>(null);
+
   const { messages, sendMessage, status, error } = useChat({
     id: threadId,
     messages: initialMessages,
@@ -576,6 +587,145 @@ function ChatPane({
   };
 
   const busy = status === "submitted" || status === "streaming";
+
+  // ── Voice: record → transcribe → send ────────────────────────────────────
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mime = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : "";
+      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      rec.onstop = async () => {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
+        if (blob.size < 1024) {
+          toast.error("Enregistrement trop court");
+          return;
+        }
+        setTranscribing(true);
+        try {
+          const { data } = await supabase.auth.getSession();
+          const fd = new FormData();
+          fd.append("file", blob, `recording.${(rec.mimeType || "audio/webm").includes("mp4") ? "mp4" : "webm"}`);
+          const res = await fetch("/api/stt", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${data.session?.access_token ?? ""}` },
+            body: fd,
+          });
+          if (!res.ok) throw new Error(await res.text());
+          const j = (await res.json()) as { text?: string };
+          const text = (j.text ?? "").trim();
+          if (!text) {
+            toast.error("Aucun texte détecté");
+            return;
+          }
+          // Auto-send when voice mode is on; otherwise fill the input for review.
+          if (voiceOn) {
+            sendMessage({ text });
+          } else {
+            setInput((prev) => (prev ? `${prev} ${text}` : text));
+            textareaRef.current?.focus();
+          }
+        } catch (err) {
+          toast.error(`Transcription : ${err instanceof Error ? err.message : "échec"}`);
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      rec.start();
+      recorderRef.current = rec;
+      setRecording(true);
+    } catch {
+      toast.error("Accès au micro refusé");
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      recorderRef.current.stop();
+    }
+    setRecording(false);
+  };
+
+  const toggleRecording = () => {
+    if (recording) stopRecording();
+    else void startRecording();
+  };
+
+  const stopSpeaking = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
+    setSpeaking(false);
+  };
+
+  const speak = async (text: string) => {
+    stopSpeaking();
+    try {
+      const { data } = await supabase.auth.getSession();
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.session?.access_token ?? ""}`,
+        },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        setSpeaking(false);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        setSpeaking(false);
+      };
+      setSpeaking(true);
+      await audio.play();
+    } catch (err) {
+      setSpeaking(false);
+      toast.error(`Voix : ${err instanceof Error ? err.message : "échec"}`);
+    }
+  };
+
+  // Auto-play the last assistant message once streaming finishes, if voice mode is on.
+  useEffect(() => {
+    if (!voiceOn || busy) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    if (lastSpokenIdRef.current === last.id) return;
+    const text = last.parts
+      .map((p) => (p.type === "text" ? p.text : ""))
+      .join("")
+      .trim();
+    if (!text) return;
+    lastSpokenIdRef.current = last.id;
+    void speak(text);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, busy, voiceOn]);
+
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+    };
+  }, []);
+
 
   return (
     <>
