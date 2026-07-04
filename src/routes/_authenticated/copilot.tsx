@@ -142,14 +142,15 @@ function SendActions({ text }: { text: string }) {
         toast.error("Ce lead n'a pas de numéro");
         return;
       }
-      const num = normalizePhone(lead.phone, countryCode);
-      if (!num) {
-        toast.error("Numéro invalide — vérifiez l'indicatif pays");
+      const res = normalizePhone(lead.phone, countryCode);
+      if (!res.ok) {
+        toast.error(`Numéro invalide : ${res.reason}`);
         return;
       }
       // wa.me requires E.164 without + or leading zeros
-      openUrl(`https://wa.me/${num}?text=${encodeURIComponent(body)}`, true);
-      toast.success(`WhatsApp ouvert pour ${lead.client_name} (+${num.slice(0, 3)}…)`);
+      openUrl(`https://wa.me/${res.e164}?text=${encodeURIComponent(body)}`, true);
+      toast.success(`WhatsApp ouvert pour ${lead.client_name} (+${res.cc})`);
+
     } else {
       if (!lead.email) {
         toast.error("Ce lead n'a pas d'email");
