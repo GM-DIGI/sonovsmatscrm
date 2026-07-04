@@ -1,4 +1,4 @@
-# Real Estate CRM & Client Portal — Build Plan
+# SONOV Smart CRM — Build Plan
 
 ## 1. Backend (Lovable Cloud / Supabase)
 

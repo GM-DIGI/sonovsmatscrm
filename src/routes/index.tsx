@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SONOV — CRM immobilier, portail client & facturation" },
+      { title: "SONOV Smart CRM — CRM immobilier, portail client & facturation" },
       {
         name: "description",
         content:
-          "SONOV pilote tout le parcours client : pipeline kanban, contrôle des documents, facturation de marque et signature électronique — avec un portail client soigné.",
+          "SONOV Smart CRM pilote tout le parcours client : pipeline kanban, contrôle des documents, facturation de marque et signature électronique — avec un portail client soigné.",
       },
     ],
   }),
