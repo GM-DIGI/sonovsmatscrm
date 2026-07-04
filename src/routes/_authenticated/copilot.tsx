@@ -30,10 +30,34 @@ function stripMarkdown(s: string) {
     .trim();
 }
 
+function normalizePhone(raw: string, defaultCc: string): string | null {
+  const trimmed = raw.trim();
+  // Keep + if present at the start
+  const hasPlus = trimmed.startsWith("+") || trimmed.startsWith("00");
+  let digits = trimmed.replace(/[^\d]/g, "");
+  if (trimmed.startsWith("00")) digits = digits.replace(/^00/, "");
+  if (!digits) return null;
+  if (hasPlus) return digits;
+  // National format: strip leading zeros and prepend country code
+  digits = digits.replace(/^0+/, "");
+  const cc = defaultCc.replace(/[^\d]/g, "");
+  if (!cc) return null;
+  return `${cc}${digits}`;
+}
+
 function SendActions({ text }: { text: string }) {
   const [leads, setLeads] = useState<LeadContact[]>([]);
   const [open, setOpen] = useState<null | "wa" | "mail">(null);
   const [loaded, setLoaded] = useState(false);
+  const [countryCode, setCountryCode] = useState<string>(() => {
+    if (typeof window === "undefined") return "225";
+    return window.localStorage.getItem("sonov.defaultCc") || "225";
+  });
+
+  const saveCc = (v: string) => {
+    setCountryCode(v);
+    try { window.localStorage.setItem("sonov.defaultCc", v); } catch {}
+  };
 
   const load = async () => {
     if (loaded) return;
@@ -65,21 +89,20 @@ function SendActions({ text }: { text: string }) {
         toast.error("Ce lead n'a pas de numéro");
         return;
       }
-      const num = lead.phone.replace(/[^\d]/g, "");
+      const num = normalizePhone(lead.phone, countryCode);
       if (!num) {
-        toast.error("Numéro invalide");
+        toast.error("Numéro invalide — vérifiez l'indicatif pays");
         return;
       }
-      // wa.me opens WhatsApp app on mobile, WhatsApp Web on desktop
+      // wa.me requires E.164 without + or leading zeros
       openUrl(`https://wa.me/${num}?text=${encodeURIComponent(body)}`, true);
-      toast.success(`WhatsApp ouvert pour ${lead.client_name}`);
+      toast.success(`WhatsApp ouvert pour ${lead.client_name} (+${num.slice(0, 3)}…)`);
     } else {
       if (!lead.email) {
         toast.error("Ce lead n'a pas d'email");
         return;
       }
       const subject = encodeURIComponent("Suivi de votre projet");
-      // mailto must stay same-tab so the OS mail handler triggers
       openUrl(`mailto:${lead.email}?subject=${subject}&body=${encodeURIComponent(body)}`, false);
       toast.success(`Email préparé pour ${lead.client_name}`);
     }
@@ -87,26 +110,45 @@ function SendActions({ text }: { text: string }) {
   };
 
   const renderPicker = (kind: "wa" | "mail") => (
-    <Command>
-      <CommandInput placeholder="Rechercher un lead…" />
-      <CommandList>
-        <CommandEmpty>Aucun lead</CommandEmpty>
-        <CommandGroup>
-          {leads
-            .filter((l) => (kind === "wa" ? l.phone : l.email))
-            .map((l) => (
-              <CommandItem key={l.id} value={l.client_name} onSelect={() => send(l, kind)}>
-                <div className="flex flex-col">
-                  <span>{l.client_name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {kind === "wa" ? l.phone : l.email}
-                  </span>
-                </div>
-              </CommandItem>
-            ))}
-        </CommandGroup>
-      </CommandList>
-    </Command>
+    <div>
+      {kind === "wa" && (
+        <div className="flex items-center gap-2 border-b border-border p-2">
+          <Label className="text-xs shrink-0">Indicatif</Label>
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground">+</span>
+            <Input
+              value={countryCode}
+              onChange={(e) => saveCc(e.target.value.replace(/[^\d]/g, ""))}
+              className="h-7 w-16 text-xs"
+              placeholder="225"
+            />
+          </div>
+          <span className="text-[10px] text-muted-foreground">
+            appliqué si numéro sans +
+          </span>
+        </div>
+      )}
+      <Command>
+        <CommandInput placeholder="Rechercher un lead…" />
+        <CommandList>
+          <CommandEmpty>Aucun lead</CommandEmpty>
+          <CommandGroup>
+            {leads
+              .filter((l) => (kind === "wa" ? l.phone : l.email))
+              .map((l) => (
+                <CommandItem key={l.id} value={l.client_name} onSelect={() => send(l, kind)}>
+                  <div className="flex flex-col">
+                    <span>{l.client_name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {kind === "wa" ? l.phone : l.email}
+                    </span>
+                  </div>
+                </CommandItem>
+              ))}
+          </CommandGroup>
+        </CommandList>
+      </Command>
+    </div>
   );
 
   return (
@@ -117,7 +159,7 @@ function SendActions({ text }: { text: string }) {
             <MessageCircle className="mr-1 h-3.5 w-3.5" /> WhatsApp
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-72 p-0" align="start">{renderPicker("wa")}</PopoverContent>
+        <PopoverContent className="w-80 p-0" align="start">{renderPicker("wa")}</PopoverContent>
       </Popover>
       <Popover open={open === "mail"} onOpenChange={(o) => { setOpen(o ? "mail" : null); if (o) load(); }}>
         <PopoverTrigger asChild>
@@ -131,6 +173,7 @@ function SendActions({ text }: { text: string }) {
     </div>
   );
 }
+
 
 function ScheduleAction({
   text,
