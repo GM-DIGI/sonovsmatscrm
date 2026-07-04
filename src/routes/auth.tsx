@@ -148,7 +148,7 @@ function AuthPage() {
       <div className="hidden flex-col justify-between bg-[color:var(--sidebar)] p-10 text-[color:var(--sidebar-foreground)] md:flex">
         <div className="flex items-center gap-2">
           <div className="grid h-10 w-10 place-items-center rounded-lg bg-[color:var(--success)] text-[color:var(--success-foreground)] font-bold">
-            A
+            S
           </div>
           <span className="text-lg font-semibold">SONOV</span>
         </div>

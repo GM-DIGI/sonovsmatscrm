@@ -156,11 +156,11 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
       <aside className="hidden w-64 shrink-0 flex-col bg-[color:var(--sidebar)] text-[color:var(--sidebar-foreground)] md:flex">
         <div className="flex items-center gap-2 px-5 py-5">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-[color:var(--success)] text-[color:var(--success-foreground)] font-bold">
-            A
+            S
           </div>
           <div>
             <div className="text-sm font-semibold leading-none">SONOV</div>
-            <div className="text-[10px] uppercase tracking-wider opacity-60">CRM Immobilier</div>
+            <div className="text-[10px] uppercase tracking-wider opacity-60">Smart CRM</div>
           </div>
         </div>
         <div className="px-5 pb-3">
@@ -250,7 +250,7 @@ export function AppShell({ children, role }: { children: ReactNode; role: AppRol
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-border bg-card/60 px-4 backdrop-blur md:px-6">
           <div className="md:hidden flex items-center gap-2">
-            <div className="grid h-7 w-7 place-items-center rounded bg-gradient-brand text-xs font-bold text-white">A</div>
+          <div className="grid h-7 w-7 place-items-center rounded bg-gradient-brand text-xs font-bold text-white">S</div>
             <span className="font-semibold">SONOV</span>
           </div>
           <div className="flex items-center gap-2">
