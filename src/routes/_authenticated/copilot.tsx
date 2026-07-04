@@ -97,6 +97,25 @@ function normalizePhone(raw: string, defaultCc: string): NormalizeResult {
   return { ok: true, e164: digits, cc: cc ?? "" };
 }
 
+type EmailResult = { ok: true; email: string } | { ok: false; reason: string };
+
+function normalizeEmail(raw: string): EmailResult {
+  if (!raw || !raw.trim()) return { ok: false, reason: "Email vide" };
+  const email = raw.trim().toLowerCase();
+  if (email.length > 254) return { ok: false, reason: "Email trop long (>254)" };
+  // RFC-5322 pragmatic regex
+  const re = /^[a-z0-9._%+-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+  if (!re.test(email)) return { ok: false, reason: "Format invalide" };
+  const [local, domain] = email.split("@");
+  if (local.length > 64) return { ok: false, reason: "Partie locale trop longue" };
+  if (local.startsWith(".") || local.endsWith(".") || local.includes(".."))
+    return { ok: false, reason: "Points invalides dans la partie locale" };
+  if (!domain.includes(".")) return { ok: false, reason: "Domaine sans extension" };
+  const tld = domain.split(".").pop() || "";
+  if (tld.length < 2) return { ok: false, reason: "Extension de domaine trop courte" };
+  return { ok: true, email };
+}
+
 
 function SendActions({ text }: { text: string }) {
   const [leads, setLeads] = useState<LeadContact[]>([]);
@@ -168,10 +187,25 @@ function SendActions({ text }: { text: string }) {
         toast.error("Ce lead n'a pas d'email");
         return;
       }
-      const subject = encodeURIComponent("Suivi de votre projet");
-      openUrl(`mailto:${lead.email}?subject=${subject}&body=${encodeURIComponent(body)}`, false);
-      toast.success(`Email préparé pour ${lead.client_name}`);
+      const res = normalizeEmail(lead.email);
+      if (!res.ok) {
+        toast.error(`Email invalide : ${res.reason}`);
+        return;
+      }
+      const subject = "Suivi de votre projet";
+      const mailto = `mailto:${res.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const gmailWeb = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(res.email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      openUrl(mailto, false);
+      try { await navigator.clipboard.writeText(body); } catch {}
+      toast.success(`Email préparé pour ${lead.client_name}`, {
+        description: "Message copié. Si votre client mail ne s'ouvre pas, utilisez Gmail web.",
+        action: {
+          label: "Gmail web",
+          onClick: () => openUrl(gmailWeb, true),
+        },
+      });
     }
+
     setOpen(null);
   };
 
