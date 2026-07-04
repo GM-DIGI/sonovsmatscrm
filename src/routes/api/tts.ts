@@ -39,6 +39,7 @@ export const Route = createFileRoute("/api/tts")({
             model: "openai/gpt-4o-mini-tts",
             input,
             voice,
+            speed,
             stream_format: "audio",
             response_format: "mp3",
           }),
