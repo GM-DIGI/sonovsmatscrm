@@ -633,6 +633,7 @@ function ChatPane({
       return;
     }
     setRecording(false);
+    const peak = rec.getPeak();
     let blob: Blob;
     try {
       blob = await rec.stop();
@@ -641,9 +642,14 @@ function ChatPane({
       return;
     } finally {
       recorderRef.current = null;
+      setMicLevel(0);
     }
     if (blob.size < 2048) {
       toast.error("Enregistrement trop court — parlez plus longtemps");
+      return;
+    }
+    if (peak < 0.01) {
+      toast.error("Micro silencieux — vérifiez l'entrée audio de votre système (aucun son détecté)");
       return;
     }
     setTranscribing(true);
