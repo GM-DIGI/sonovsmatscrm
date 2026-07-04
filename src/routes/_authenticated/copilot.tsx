@@ -30,20 +30,73 @@ function stripMarkdown(s: string) {
     .trim();
 }
 
-function normalizePhone(raw: string, defaultCc: string): string | null {
+// Country dial codes → expected total E.164 length range (cc + national)
+const CC_LENGTHS: Record<string, [number, number]> = {
+  "1": [11, 11],   // US/CA
+  "33": [11, 11],  // France
+  "32": [11, 11],  // Belgium
+  "41": [11, 11],  // Switzerland
+  "44": [12, 13],  // UK
+  "212": [12, 12], // Morocco
+  "213": [12, 12], // Algeria
+  "216": [11, 11], // Tunisia
+  "221": [12, 12], // Senegal
+  "223": [11, 11], // Mali
+  "224": [12, 12], // Guinea
+  "225": [13, 13], // Côte d'Ivoire (10 digits national)
+  "226": [11, 11], // Burkina Faso
+  "227": [11, 11], // Niger
+  "228": [11, 11], // Togo
+  "229": [11, 11], // Benin
+  "233": [12, 12], // Ghana
+  "234": [13, 14], // Nigeria
+  "237": [12, 12], // Cameroon
+  "241": [11, 11], // Gabon
+  "242": [12, 12], // Congo
+  "243": [12, 12], // DRC
+};
+
+type NormalizeResult =
+  | { ok: true; e164: string; cc: string }
+  | { ok: false; reason: string };
+
+function normalizePhone(raw: string, defaultCc: string): NormalizeResult {
+  if (!raw || !raw.trim()) return { ok: false, reason: "Numéro vide" };
   const trimmed = raw.trim();
-  // Keep + if present at the start
-  const hasPlus = trimmed.startsWith("+") || trimmed.startsWith("00");
+  const hasInternational = trimmed.startsWith("+") || trimmed.startsWith("00");
   let digits = trimmed.replace(/[^\d]/g, "");
   if (trimmed.startsWith("00")) digits = digits.replace(/^00/, "");
-  if (!digits) return null;
-  if (hasPlus) return digits;
-  // National format: strip leading zeros and prepend country code
-  digits = digits.replace(/^0+/, "");
-  const cc = defaultCc.replace(/[^\d]/g, "");
-  if (!cc) return null;
-  return `${cc}${digits}`;
+  if (!digits) return { ok: false, reason: "Numéro sans chiffres" };
+
+  let cc: string | null = null;
+  if (hasInternational) {
+    // Detect country code (longest match wins)
+    const codes = Object.keys(CC_LENGTHS).sort((a, b) => b.length - a.length);
+    cc = codes.find((c) => digits.startsWith(c)) ?? null;
+  } else {
+    digits = digits.replace(/^0+/, "");
+    cc = defaultCc.replace(/[^\d]/g, "") || null;
+    if (!cc) return { ok: false, reason: "Indicatif pays manquant" };
+    digits = `${cc}${digits}`;
+  }
+
+  if (digits.length < 8) return { ok: false, reason: "Numéro trop court" };
+  if (digits.length > 15) return { ok: false, reason: "Numéro trop long (>15 chiffres E.164)" };
+  if (/^0/.test(digits)) return { ok: false, reason: "Ne peut pas commencer par 0" };
+
+  if (cc && CC_LENGTHS[cc]) {
+    const [min, max] = CC_LENGTHS[cc];
+    if (digits.length < min || digits.length > max) {
+      return {
+        ok: false,
+        reason: `Longueur invalide pour +${cc} (attendu ${min === max ? min : `${min}–${max}`} chiffres)`,
+      };
+    }
+  }
+
+  return { ok: true, e164: digits, cc: cc ?? "" };
 }
+
 
 function SendActions({ text }: { text: string }) {
   const [leads, setLeads] = useState<LeadContact[]>([]);
@@ -89,14 +142,15 @@ function SendActions({ text }: { text: string }) {
         toast.error("Ce lead n'a pas de numéro");
         return;
       }
-      const num = normalizePhone(lead.phone, countryCode);
-      if (!num) {
-        toast.error("Numéro invalide — vérifiez l'indicatif pays");
+      const res = normalizePhone(lead.phone, countryCode);
+      if (!res.ok) {
+        toast.error(`Numéro invalide : ${res.reason}`);
         return;
       }
       // wa.me requires E.164 without + or leading zeros
-      openUrl(`https://wa.me/${num}?text=${encodeURIComponent(body)}`, true);
-      toast.success(`WhatsApp ouvert pour ${lead.client_name} (+${num.slice(0, 3)}…)`);
+      openUrl(`https://wa.me/${res.e164}?text=${encodeURIComponent(body)}`, true);
+      toast.success(`WhatsApp ouvert pour ${lead.client_name} (+${res.cc})`);
+
     } else {
       if (!lead.email) {
         toast.error("Ce lead n'a pas d'email");
