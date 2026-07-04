@@ -965,9 +965,16 @@ function ChatPane({
         {(recording || speaking) && (
           <div className="mx-auto mt-2 flex max-w-3xl items-center gap-2 text-xs text-muted-foreground">
             {recording && (
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-2">
                 <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-destructive" />
                 Enregistrement…
+                <span className="ml-1 inline-block h-2 w-32 overflow-hidden rounded-full bg-muted" title="Niveau du micro">
+                  <span
+                    className="block h-full bg-primary transition-[width] duration-75"
+                    style={{ width: `${Math.min(100, Math.round(micLevel * 300))}%` }}
+                  />
+                </span>
+                <span className="tabular-nums">{Math.round(micLevel * 100)}%</span>
               </span>
             )}
             {speaking && (
